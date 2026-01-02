@@ -36,7 +36,7 @@ const Register = () => {
   };
 
   return (
-    <div style={{ backgroundColor: '#000', color: '#fff', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <div style={{ backgroundColor: '#ECE9E9', color: '#000000ff', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <div style={{ maxWidth: '600px', width: '90%', padding: '20px' }}>
         <div style={{ textAlign: 'center', marginBottom: '20px' }}>
           <h1>AI Workout Tracker</h1>
@@ -81,9 +81,9 @@ const Register = () => {
               {errors.confirmPassword && <div style={{ color: 'red' }}>{errors.confirmPassword}</div>}
             </div>
             {errors.general && <div style={{ color: 'red' }}>{errors.general}</div>}
-            <button type="submit" style={{ backgroundColor: '#fff', color: '#000', border: 'none', borderRadius: '5px', padding: '10px', width: '100%', marginBottom: '10px' }}>Sign Up Free</button>
+            <button type="submit" style={{ backgroundColor: '#c6e469', color: '#000', border: 'none', borderRadius: '5px', padding: '10px', width: '100%', marginBottom: '10px' }}>Sign Up Free</button>
           </form>
-          <button style={{ backgroundColor: 'transparent', color: '#fff', border: '1px solid #fff', borderRadius: '5px', padding: '10px', width: '100%', marginBottom: '10px' }} onClick={() => navigate('/login')}>Login</button>
+          <button style={{ backgroundColor: 'transparent', color: '#000000ff', border: '1px solid #000000ff', borderRadius: '5px', padding: '10px', width: '100%', marginBottom: '10px' }} onClick={() => navigate('/login')}>Login</button>
           <button style={{ backgroundColor: '#ffd700', color: '#000', border: 'none', borderRadius: '5px', padding: '10px', width: '100%', marginBottom: '10px' }}>Upgrade to Premium – Get 50% OFF</button>
         </div>
         <ul style={{ listStyle: 'none', padding: 0 }}>

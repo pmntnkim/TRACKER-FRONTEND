@@ -19,7 +19,7 @@ function App() {
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
           <Route path="/program" element={<ProtectedRoute><h1>Program</h1></ProtectedRoute>} />
-          <Route path="/" element={<h1>Hello, React!</h1>} />
+          <Route path="/" element={<Dashboard />} />
         </Routes>
       </div>
     </AuthProvider>

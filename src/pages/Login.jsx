@@ -32,14 +32,14 @@ const Login = () => {
   };
 
   return (
-    <div style={{ backgroundColor: '#000', color: '#fff', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <div style={{ backgroundColor: '#ECE9E9', color: '#000000ff', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <div style={{ maxWidth: '600px', width: '90%', padding: '20px' }}>
         <div style={{ textAlign: 'center', marginBottom: '20px' }}>
           <h1>AI Workout Tracker</h1>
           <p>Your Personal AI-Powered Fitness Journey</p>
         </div>
         <div style={{ marginBottom: '20px' }}>
-          <button style={{ backgroundColor: '#fff', color: '#000', border: 'none', borderRadius: '5px', padding: '10px', width: '100%', marginBottom: '10px' }} onClick={() => navigate('/register')}>Sign Up Free</button>
+          <button style={{ backgroundColor: '#c6e469', color: '#000', border: 'none', borderRadius: '5px', padding: '10px', width: '100%', marginBottom: '10px' }} onClick={() => navigate('/register')}>Sign Up Free</button>
           <form onSubmit={handleSubmit}>
             <div style={{ marginBottom: '10px' }}>
               <input
@@ -66,7 +66,7 @@ const Login = () => {
               {errors.password && <div style={{ color: 'red' }}>{errors.password}</div>}
             </div>
             {errors.general && <div style={{ color: 'red' }}>{errors.general}</div>}
-            <button type="submit" style={{ backgroundColor: 'transparent', color: '#fff', border: '1px solid #fff', borderRadius: '5px', padding: '10px', width: '100%', marginBottom: '10px' }}>Login</button>
+            <button type="submit" style={{ backgroundColor: 'transparent', color: '#000000ff', border: '1px solid #000000ff', borderRadius: '5px', padding: '10px', width: '100%', marginBottom: '10px' }}>Login</button>
           </form>
           <button style={{ backgroundColor: '#ffd700', color: '#000', border: 'none', borderRadius: '5px', padding: '10px', width: '100%', marginBottom: '10px' }}>Upgrade to Premium – Get 50% OFF</button>
         </div>

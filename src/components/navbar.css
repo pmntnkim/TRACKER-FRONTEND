@@ -1,0 +1,107 @@
+/* Navbar styles with dark gradient and modern layout */
+.navbar {
+  background: linear-gradient(90deg, #a9ffb8 0%, #c6e469 40%, #a9ffb8 100%);
+  color: #fff;
+  padding: 12px 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  backdrop-filter: blur(6px);
+}
+
+.navbar-inner {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+  width: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.navbar-brand {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  color: inherit;
+  gap: 10px;
+}
+
+.brand-logo {
+  font-size: 1.6rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: linear-gradient(135deg,#ff6b6b,#ff9a9e);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+}
+
+.brand-text {
+  font-weight: 700;
+  font-size: 1.1rem;
+  letter-spacing: 0.4px;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.navbar-links {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.nav-list {
+  list-style: none;
+  display: flex;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  align-items: center;
+}
+
+.nav-list a {
+  color: rgba(255,255,255,0.95);
+  text-decoration: none;
+  padding: 8px 10px;
+  border-radius: 6px;
+  transition: background .18s, transform .12s;
+}
+
+.nav-list a:hover {
+  background: rgba(255,255,255,0.04);
+  transform: translateY(-1px);
+}
+
+.btn {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.logout-btn {
+  background: linear-gradient(90deg,#ff3b30,#ff7a7a);
+  color: #fff;
+  box-shadow: 0 6px 18px rgba(255,60,60,0.12);
+}
+
+/* Responsive: hide nav links on small screens */
+@media (max-width: 720px) {
+  .nav-list {
+    display: none;
+  }
+  .brand-text {
+    display: none;
+  }
+}
