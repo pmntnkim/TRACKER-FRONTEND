@@ -1,99 +1,202 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import axios from '../api/axios';
+import React from "react";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { Eye, EyeOff, Dumbbell, Loader2, Check } from "lucide-react";
 
-const Register = () => {
-  const [formData, setFormData] = useState({ email: '', password: '', confirmPassword: '' });
-  const [errors, setErrors] = useState({});
-  const { login } = useAuth();
+const Register = ({ onRegister }) => {
   const navigate = useNavigate();
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    password: "",
+  });
+  const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    setError("");
   };
+
+  const passwordRequirements = [
+    { label: "At least 8 characters", met: formData.password.length >= 8 },
+    { label: "Contains a number", met: /\d/.test(formData.password) },
+    { label: "Contains uppercase", met: /[A-Z]/.test(formData.password) },
+  ];
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (formData.password !== formData.confirmPassword) {
-      setErrors({ confirmPassword: 'Passwords do not match' });
-      return;
+    setIsLoading(true);
+    setError("");
+
+    // Simulate API call
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+
+    // Demo registration
+    if (formData.name && formData.email && formData.password) {
+      onRegister?.();
+      navigate("/dashboard");
+    } else {
+      setError("Please fill in all fields");
     }
-    try {
-      const response = await axios.post('/auth/register/', {
-        email: formData.email,
-        password: formData.password,
-      });
-      login(response.data.token, response.data.user);
-      navigate('/dashboard');
-    } catch (error) {
-      if (error.response && error.response.data) {
-        setErrors(error.response.data);
-      } else {
-        setErrors({ general: 'An error occurred. Please try again.' });
-      }
-    }
+    setIsLoading(false);
   };
 
   return (
-    <div style={{ backgroundColor: '#ECE9E9', color: '#000000ff', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{ maxWidth: '600px', width: '90%', padding: '20px' }}>
-        <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-          <h1>AI Workout Tracker</h1>
-          <p>Your Personal AI-Powered Fitness Journey</p>
+    <div className="min-h-screen flex items-center justify-center px-4 py-12">
+      <div className="w-full max-w-md animate-slide-up">
+        {/* Logo */}
+        <div className="text-center mb-8">
+          <Link to="/" className="inline-flex items-center gap-3 group">
+            <div className="w-14 h-14 rounded-2xl bg-primary flex items-center justify-center transition-transform group-hover:scale-105">
+              <Dumbbell className="w-7 h-7 text-primary-foreground" />
+            </div>
+            <span className="font-display text-3xl font-bold tracking-tight">
+              ANGRIT
+            </span>
+          </Link>
+          <p className="mt-4 text-muted-foreground">
+            Start your transformation today.
+          </p>
         </div>
-        <div style={{ marginBottom: '20px' }}>
-          <form onSubmit={handleSubmit}>
-            <div style={{ marginBottom: '10px' }}>
+
+        {/* Register Form */}
+        <div className="angrit-card-elevated">
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {error && (
+              <div className="p-4 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-sm">
+                {error}
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-foreground">
+                Full Name
+              </label>
+              <input
+                type="text"
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                placeholder="John Doe"
+                className="angrit-input w-full"
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-foreground">
+                Email
+              </label>
               <input
                 type="email"
-                style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid #ccc' }}
-                placeholder="Email"
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
+                placeholder="you@example.com"
+                className="angrit-input w-full"
                 required
               />
-              {errors.email && <div style={{ color: 'red' }}>{errors.email}</div>}
             </div>
-            <div style={{ marginBottom: '10px' }}>
+
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-foreground">
+                Password
+              </label>
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  placeholder="••••••••"
+                  className="angrit-input w-full pr-12"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {showPassword ? (
+                    <EyeOff className="w-5 h-5" />
+                  ) : (
+                    <Eye className="w-5 h-5" />
+                  )}
+                </button>
+              </div>
+
+              {/* Password Requirements */}
+              <div className="mt-3 space-y-2">
+                {passwordRequirements.map((req, index) => (
+                  <div
+                    key={index}
+                    className={`flex items-center gap-2 text-xs transition-colors ${
+                      req.met ? "text-success" : "text-muted-foreground"
+                    }`}
+                  >
+                    <div
+                      className={`w-4 h-4 rounded-full flex items-center justify-center ${
+                        req.met ? "bg-success" : "bg-muted"
+                      }`}
+                    >
+                      {req.met && <Check className="w-3 h-3 text-background" />}
+                    </div>
+                    {req.label}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex items-start gap-2">
               <input
-                type="password"
-                style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid #ccc' }}
-                placeholder="Password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
+                type="checkbox"
                 required
+                className="w-4 h-4 mt-1 rounded border-border bg-input checked:bg-primary"
               />
-              {errors.password && <div style={{ color: 'red' }}>{errors.password}</div>}
+              <span className="text-sm text-muted-foreground">
+                I agree to the{" "}
+                <a href="#" className="text-primary hover:underline">
+                  Terms of Service
+                </a>{" "}
+                and{" "}
+                <a href="#" className="text-primary hover:underline">
+                  Privacy Policy
+                </a>
+              </span>
             </div>
-            <div style={{ marginBottom: '10px' }}>
-              <input
-                type="password"
-                style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid #ccc' }}
-                placeholder="Confirm Password"
-                name="confirmPassword"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                required
-              />
-              {errors.confirmPassword && <div style={{ color: 'red' }}>{errors.confirmPassword}</div>}
-            </div>
-            {errors.general && <div style={{ color: 'red' }}>{errors.general}</div>}
-            <button type="submit" style={{ backgroundColor: '#c6e469', color: '#000', border: 'none', borderRadius: '5px', padding: '10px', width: '100%', marginBottom: '10px' }}>Sign Up Free</button>
+
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="angrit-btn-primary w-full flex items-center justify-center gap-2"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Creating account...
+                </>
+              ) : (
+                "Create Account"
+              )}
+            </button>
           </form>
-          <button style={{ backgroundColor: 'transparent', color: '#000000ff', border: '1px solid #000000ff', borderRadius: '5px', padding: '10px', width: '100%', marginBottom: '10px' }} onClick={() => navigate('/login')}>Login</button>
-          <button style={{ backgroundColor: '#ffd700', color: '#000', border: 'none', borderRadius: '5px', padding: '10px', width: '100%', marginBottom: '10px' }}>Upgrade to Premium – Get 50% OFF</button>
+
+          <div className="mt-6 pt-6 border-t border-border text-center">
+            <p className="text-muted-foreground text-sm">
+              Already have an account?{" "}
+              <Link to="/login" className="text-primary hover:underline font-medium">
+                Sign in
+              </Link>
+            </p>
+          </div>
         </div>
-        <ul style={{ listStyle: 'none', padding: 0 }}>
-          <li>✓ AI Workouts</li>
-          <li>✓ Progress Tracking</li>
-          <li>✓ 1000+ Exercises</li>
-        </ul>
       </div>
     </div>
   );
 };
 
 export default Register;
+
