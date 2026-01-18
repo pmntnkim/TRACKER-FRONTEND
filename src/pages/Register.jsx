@@ -2,9 +2,13 @@ import React from "react";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Dumbbell, Loader2, Check } from "lucide-react";
+import TermsOfServiceDialog from "../components/TermsOfServiceDialog";
+import PrivacyPolicyDialog from "../components/PrivacyPolicyDialog";
+import { useAuth } from "../context/AuthContext";
 
 const Register = ({ onRegister }) => {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -36,7 +40,7 @@ const Register = ({ onRegister }) => {
 
     // Demo registration
     if (formData.name && formData.email && formData.password) {
-      onRegister?.();
+      login();
       navigate("/dashboard");
     } else {
       setError("Please fill in all fields");
@@ -158,13 +162,23 @@ const Register = ({ onRegister }) => {
               />
               <span className="text-sm text-muted-foreground">
                 I agree to the{" "}
-                <a href="#" className="text-primary hover:underline">
-                  Terms of Service
-                </a>{" "}
+                <TermsOfServiceDialog>
+                  <button
+                    type="button"
+                    className="text-primary hover:underline"
+                  >
+                    Terms of Service
+                  </button>
+                </TermsOfServiceDialog>{" "}
                 and{" "}
-                <a href="#" className="text-primary hover:underline">
-                  Privacy Policy
-                </a>
+                <PrivacyPolicyDialog>
+                  <button
+                    type="button"
+                    className="text-primary hover:underline"
+                  >
+                    Privacy Policy
+                  </button>
+                </PrivacyPolicyDialog>
               </span>
             </div>
 

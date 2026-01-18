@@ -1,5 +1,5 @@
 import React from "react"; 
-import { useState } from "react";
+import { AuthProvider } from "./context/AuthContext";
 import { Toaster } from "./components/ui/toaster";
 import { Toaster as Sonner } from "./components/ui/sonner";
 import { TooltipProvider } from "./components/ui/tooltip";
@@ -20,35 +20,33 @@ import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 
 const App = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-
-  const handleLogin = () => setIsAuthenticated(true);
-  const handleLogout = () => setIsAuthenticated(false);
-
+  
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <Toaster />
-        <Sonner />
-          <Routes>
-            {/* Public Routes */}
-            <Route path="/" element={<Index />} />
-            <Route path="/login" element={<Login onLogin={handleLogin} />} />
-            <Route path="/register" element={<Register onRegister={handleLogin} />} />
+        <AuthProvider>
+          <Toaster />
+          <Sonner />
+            <Routes>
+              {/* Public Routes */}
+              <Route path="/" element={<Index />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
 
-            {/* Protected Routes */}
-            <Route element={<ProtectedRoute isAuthenticated={isAuthenticated} />}>
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/exercises" element={<Exercises />} />
-              <Route path="/workout-log" element={<WorkoutLog />} />
-              <Route path="/program" element={<Program />} />
-              <Route path="/chat-coach" element={<ChatCoach />} />
-            </Route>
+              {/* Protected Routes */}
+              <Route element={<ProtectedRoute />}>
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="/exercises" element={<Exercises />} />
+                <Route path="/workout-log" element={<WorkoutLog />} />
+                <Route path="/program" element={<Program />} />
+                <Route path="/chat-coach" element={<ChatCoach />} />
+              </Route>
 
-            {/* Catch-all */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+              {/* Catch-all */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+        </AuthProvider>
       </TooltipProvider>
     </QueryClientProvider>
   );

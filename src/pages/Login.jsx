@@ -2,9 +2,11 @@ import React from "react";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Dumbbell, Loader2 } from "lucide-react";
+import { useAuth } from "../context/AuthContext";
 
 const Login = ({ onLogin }) => {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -29,7 +31,7 @@ const Login = ({ onLogin }) => {
 
     // Demo login - accept any credentials
     if (formData.email && formData.password) {
-      onLogin?.();
+      login();
       navigate("/dashboard");
     } else {
       setError("Please enter your email and password");

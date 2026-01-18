@@ -1,11 +1,14 @@
 import React from "react";
 import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Menu, X, Dumbbell, User, LogOut } from "lucide-react";
+import { useAuth } from "../context/AuthContext";
 
-const Navbar = ({ isAuthenticated = true, onLogout }) => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const location = useLocation();
+const Navbar = () => {
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const location = useLocation()
+  const navigate = useNavigate()
+  const { isAuthenticated, logout } = useAuth()
 
   const navLinks = [
     { path: "/dashboard", label: "Dashboard" },
@@ -17,12 +20,20 @@ const Navbar = ({ isAuthenticated = true, onLogout }) => {
 
   const isActive = (path) => location.pathname === path;
 
+  const handleLogout = () => {
+    logout()
+    navigate("/login")
+  }
+
+  // When authenticated, logo goes to dashboard; otherwise to home
+  const logoPath = isAuthenticated ? "/dashboard" : "/"
+
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2 group">
+          <Link to={logoPath} className="flex items-center gap-2 group">
             <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center transition-transform group-hover:scale-105">
               <Dumbbell className="w-5 h-5 text-primary-foreground" />
             </div>
@@ -58,7 +69,7 @@ const Navbar = ({ isAuthenticated = true, onLogout }) => {
                     <User className="w-5 h-5" />
                   </Link>
                   <button
-                    onClick={onLogout}
+                    onClick={handleLogout}
                     className="p-2 rounded-xl bg-secondary hover:bg-destructive/20 hover:text-destructive transition-colors"
                   >
                     <LogOut className="w-5 h-5" />
@@ -117,7 +128,7 @@ const Navbar = ({ isAuthenticated = true, onLogout }) => {
                 </Link>
                 <button
                   onClick={() => {
-                    onLogout?.();
+                    handleLogout();
                     setIsMenuOpen(false);
                   }}
                   className="w-full text-left px-4 py-3 rounded-xl font-medium text-destructive hover:bg-destructive/10"
