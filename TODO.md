@@ -4,3 +4,4 @@
 - [x] Create FRONTEND/src/pages/Profile.jsx: Form component for editing age, height, weight, goal, fitness level, with controlled inputs and API save (PUT /user/profile).
 - [x] Edit FRONTEND/src/App.jsx: Import and replace placeholder elements with the new components.
 - [x] Test components for runtime errors and proper state handling.
+- [ ] Implement responsive design across all components to ensure mobile and tablet compatibility.
