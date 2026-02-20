@@ -1,5 +1,5 @@
-import React from "react";
-import { Link } from "react-router-dom";
+import React from "react"
+import { Link } from "react-router-dom"
 import { 
   Dumbbell, 
   ChevronRight, 
@@ -9,7 +9,7 @@ import {
   Sparkles,
   MessageCircle,
   BarChart3
-} from "lucide-react";
+} from "lucide-react"
 
 const Index = () => {
   const features = [
@@ -194,7 +194,7 @@ const Index = () => {
             <span className="font-display font-bold">ANGRIT</span>
           </div>
           <p className="text-sm text-muted-foreground">
-            © 2024 ANGRIT. Built for athletes.
+            © 2026 ANGRIT. Built for Athletes.
           </p>
         </div>
       </footer>

@@ -1,43 +1,33 @@
-import React from "react";
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { Eye, EyeOff, Dumbbell, Loader2 } from "lucide-react";
-import { useAuth } from "../context/AuthContext";
+import React from "react"
+import { useState, useEffect } from "react"
+import { Link, useNavigate } from "react-router-dom"
+import { Eye, EyeOff, Dumbbell, Loader2 } from "lucide-react"
+import { useDispatch, useSelector } from "react-redux"
+import { login } from "../actions/authActions"
 
-const Login = ({ onLogin }) => {
-  const navigate = useNavigate();
-  const { login } = useAuth();
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-  });
-  const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
+const Login = () => {
+  const navigate = useNavigate()
+  const dispatch = useDispatch()
+  const { loading, userInfo, error } = useSelector(state => state.authLogin)
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-    setError("");
-  };
+  const [formData, setFormData] = useState({ email: "", password: "" })
+  const [showPassword, setShowPassword] = useState(false)
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError("");
-
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-
-    // Demo login - accept any credentials
-    if (formData.email && formData.password) {
-      login();
-      navigate("/dashboard");
-    } else {
-      setError("Please enter your email and password");
+  useEffect(() => {
+    if (userInfo) {
+      navigate("/dashboard")
     }
-    setIsLoading(false);
-  };
+  }, [userInfo, navigate])
+
+  const handleChange = e => {
+    const { name, value } = e.target
+    setFormData(prev => ({ ...prev, [name]: value }))
+  }
+
+  const handleSubmit = async e => {
+    e.preventDefault()
+    dispatch(login(formData.email, formData.password))
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-12">
@@ -124,10 +114,10 @@ const Login = ({ onLogin }) => {
 
             <button
               type="submit"
-              disabled={isLoading}
+              disabled={loading}
               className="angrit-btn-primary w-full flex items-center justify-center gap-2"
             >
-              {isLoading ? (
+              {loading ? (
                 <>
                   <Loader2 className="w-5 h-5 animate-spin" />
                   Signing in...
@@ -141,7 +131,10 @@ const Login = ({ onLogin }) => {
           <div className="mt-6 pt-6 border-t border-border text-center">
             <p className="text-muted-foreground text-sm">
               Don't have an account?{" "}
-              <Link to="/register" className="text-primary hover:underline font-medium">
+              <Link
+                to="/register"
+                className="text-primary hover:underline font-medium"
+              >
                 Sign up
               </Link>
             </p>
@@ -149,7 +142,7 @@ const Login = ({ onLogin }) => {
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default Login;
+export default Login

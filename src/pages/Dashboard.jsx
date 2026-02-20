@@ -1,6 +1,6 @@
-import React from "react";
-import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import React from "react"
+import { useState, useEffect } from "react"
+import { Link } from "react-router-dom"
 import { 
   Flame, 
   Timer, 
@@ -10,76 +10,73 @@ import {
   ChevronRight,
   Dumbbell,
   Target
-} from "lucide-react";
+} from "lucide-react"
 import Navbar from "../components/Navbar";
+import { useDispatch, useSelector } from "react-redux"
+import { getDashboardStats } from "../actions/workoutActions"
 
 const Dashboard = () => {
-  const [stats, setStats] = useState({
-    totalWorkouts: 0,
-    totalMinutes: 0,
-    currentStreak: 0,
-    weeklyGoal: 0,
-  });
-  const [isLoading, setIsLoading] = useState(true);
+  const dispatch = useDispatch()
+  const { loading: isLoading, stats } = useSelector(
+    state => state.dashboardStats
+  )
+  const { workouts: recentWorkouts } = useSelector(state => state.workoutLog)
 
   useEffect(() => {
-    // Simulate API fetch
-    const fetchStats = async () => {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      setStats({
-        totalWorkouts: 47,
-        totalMinutes: 2340,
-        currentStreak: 12,
-        weeklyGoal: 4,
-      });
-      setIsLoading(false);
-    };
-    fetchStats();
-  }, []);
+    dispatch(getDashboardStats())
+  }, [dispatch])
 
   const statCards = [
     {
       label: "Total Workouts",
-      value: stats.totalWorkouts,
+      value: stats?.total_workouts ?? "-",
       icon: Dumbbell,
-      color: "primary",
+      color: "primary"
     },
     {
       label: "Minutes Trained",
-      value: stats.totalMinutes.toLocaleString(),
+      value: stats?.total_minutes ? stats.total_minutes.toLocaleString() : "-",
       icon: Timer,
-      color: "primary",
+      color: "primary"
     },
     {
       label: "Day Streak",
-      value: stats.currentStreak,
+      value: stats?.current_streak ?? "-",
       icon: Flame,
       suffix: "🔥",
-      color: "warning",
+      color: "warning"
     },
     {
       label: "Weekly Goal",
-      value: `${stats.weeklyGoal}/5`,
+      value: stats ? `${stats.weekly_completed ?? 0}/5` : "-",
       icon: Target,
-      color: "success",
-    },
-  ];
-
-  const recentWorkouts = [
-    { name: "Push Day", date: "Today", duration: "58 min", exercises: 6 },
-    { name: "Pull Day", date: "Yesterday", duration: "62 min", exercises: 7 },
-    { name: "Leg Day", date: "2 days ago", duration: "55 min", exercises: 5 },
-  ];
+      color: "success"
+    }
+  ]
 
   const upcomingWorkouts = [
     { name: "Push Day", day: "Tomorrow", time: "6:00 AM" },
-    { name: "Pull Day", day: "Wednesday", time: "6:00 AM" },
-  ];
+    { name: "Pull Day", day: "Wednesday", time: "6:00 AM" }
+  ]
+
+  const formatDate = dateStr => {
+    const date = new Date(dateStr)
+    const today = new Date()
+    const yesterday = new Date(today)
+    yesterday.setDate(yesterday.getDate() - 1)
+    if (dateStr === today.toISOString().split("T")[0]) return "Today"
+    if (dateStr === yesterday.toISOString().split("T")[0]) return "Yesterday"
+    return date.toLocaleDateString("en-US", {
+      weekday: "short",
+      month: "short",
+      day: "numeric"
+    })
+  }
 
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      
+
       <main className="pt-24 pb-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8 animate-fade-in">
@@ -126,9 +123,14 @@ const Dashboard = () => {
 
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Recent Workouts */}
-          <div className="lg:col-span-2 angrit-card animate-slide-up" style={{ animationDelay: "200ms" }}>
+          <div
+            className="lg:col-span-2 angrit-card animate-slide-up"
+            style={{ animationDelay: "200ms" }}
+          >
             <div className="flex items-center justify-between mb-6">
-              <h2 className="font-display text-xl font-bold">Recent Workouts</h2>
+              <h2 className="font-display text-xl font-bold">
+                Recent Workouts
+              </h2>
               <Link
                 to="/workout-log"
                 className="text-primary text-sm font-medium flex items-center gap-1 hover:gap-2 transition-all"
@@ -138,27 +140,41 @@ const Dashboard = () => {
             </div>
 
             <div className="space-y-4">
-              {recentWorkouts.map((workout, index) => (
-                <div
-                  key={index}
-                  className="flex items-center justify-between p-4 rounded-xl bg-secondary/50 hover:bg-secondary transition-colors cursor-pointer"
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                      <Dumbbell className="w-5 h-5 text-primary" />
+              {isLoading ? (
+                [1, 2, 3].map(i => (
+                  <div
+                    key={i}
+                    className="h-16 bg-muted rounded-xl animate-pulse"
+                  />
+                ))
+              ) : recentWorkouts.length === 0 ? (
+                <p className="text-muted-foreground text-sm text-center py-4">
+                  No recent workouts yet.
+                </p>
+              ) : (
+                recentWorkouts.slice(0, 3).map((workout, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center justify-between p-4 rounded-xl bg-secondary/50 hover:bg-secondary transition-colors cursor-pointer"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                        <Dumbbell className="w-5 h-5 text-primary" />
+                      </div>
+                      <div>
+                        <p className="font-semibold">{workout.exercise}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {workout.sets} sets × {workout.reps} reps
+                          {workout.weight > 0 && ` @ ${workout.weight}kg`}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-semibold">{workout.name}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {workout.exercises} exercises • {workout.duration}
-                      </p>
-                    </div>
+                    <span className="text-sm text-muted-foreground">
+                      {workout.date ? formatDate(workout.date) : ""}
+                    </span>
                   </div>
-                  <span className="text-sm text-muted-foreground">
-                    {workout.date}
-                  </span>
-                </div>
-              ))}
+                ))
+              )}
             </div>
 
             <Link
@@ -173,7 +189,10 @@ const Dashboard = () => {
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Upcoming */}
-            <div className="angrit-card animate-slide-up" style={{ animationDelay: "300ms" }}>
+            <div
+              className="angrit-card animate-slide-up"
+              style={{ animationDelay: "300ms" }}
+            >
               <div className="flex items-center gap-2 mb-4">
                 <Calendar className="w-5 h-5 text-primary" />
                 <h3 className="font-display text-lg font-bold">Upcoming</h3>
@@ -186,7 +205,9 @@ const Dashboard = () => {
                   >
                     <div>
                       <p className="font-medium text-sm">{workout.name}</p>
-                      <p className="text-xs text-muted-foreground">{workout.day}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {workout.day}
+                      </p>
                     </div>
                     <span className="text-xs text-muted-foreground">
                       {workout.time}
@@ -197,43 +218,48 @@ const Dashboard = () => {
             </div>
 
             {/* Weekly Progress */}
-            <div className="angrit-card animate-slide-up" style={{ animationDelay: "400ms" }}>
+            <div
+              className="angrit-card animate-slide-up"
+              style={{ animationDelay: "400ms" }}
+            >
               <div className="flex items-center gap-2 mb-4">
                 <TrendingUp className="w-5 h-5 text-primary" />
                 <h3 className="font-display text-lg font-bold">This Week</h3>
               </div>
               <div className="space-y-3">
                 {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(
-                  (day, index) => (
-                    <div key={day} className="flex items-center gap-3">
-                      <span className="w-8 text-xs text-muted-foreground">
-                        {day}
-                      </span>
-                      <div className="flex-1 h-2 bg-secondary rounded-full overflow-hidden">
-                        <div
-                          className={`h-full rounded-full transition-all duration-500 ${
-                            index < 4 ? "bg-primary" : "bg-muted"
-                          }`}
-                          style={{
-                            width: index < 4 ? "100%" : "0%",
-                            animationDelay: `${index * 100}ms`,
-                          }}
-                        />
+                  (day, index) => {
+                    const completed = stats?.weekly_days_completed ?? []
+                    const isDone = Array.isArray(completed)
+                      ? index < completed.length
+                      : index < (stats?.weekly_completed ?? 0)
+                    return (
+                      <div key={day} className="flex items-center gap-3">
+                        <span className="w-8 text-xs text-muted-foreground">
+                          {day}
+                        </span>
+                        <div className="flex-1 h-2 bg-secondary rounded-full overflow-hidden">
+                          <div
+                            className={`h-full rounded-full transition-all duration-500 ${
+                              isDone ? "bg-primary" : "bg-muted"
+                            }`}
+                            style={{ width: isDone ? "100%" : "0%" }}
+                          />
+                        </div>
                       </div>
-                    </div>
-                  )
+                    )
+                  }
                 )}
               </div>
               <p className="mt-4 text-center text-sm text-muted-foreground">
-                4 of 5 workouts completed
+                {stats?.weekly_completed ?? 0} of 5 workouts completed
               </p>
             </div>
           </div>
         </div>
       </main>
     </div>
-  );
-};
+  )
+}
 
-export default Dashboard;
-
+export default Dashboard

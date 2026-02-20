@@ -1,52 +1,45 @@
-import React from "react";
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { Eye, EyeOff, Dumbbell, Loader2, Check } from "lucide-react";
-import TermsOfServiceDialog from "../components/TermsOfServiceDialog";
-import PrivacyPolicyDialog from "../components/PrivacyPolicyDialog";
-import { useAuth } from "../context/AuthContext";
+import React from "react"
+import { useState, useEffect } from "react"
+import { Link, useNavigate } from "react-router-dom"
+import { Eye, EyeOff, Dumbbell, Loader2, Check } from "lucide-react"
+import { useDispatch, useSelector } from "react-redux"
+import { register } from "../actions/authActions"
+import TermsOfServiceDialog from "../components/TermsOfServiceDialog"
+import PrivacyPolicyDialog from "../components/PrivacyPolicyDialog"
 
-const Register = ({ onRegister }) => {
-  const navigate = useNavigate();
-  const { login } = useAuth();
+const Register = () => {
+  const navigate = useNavigate()
+  const dispatch = useDispatch()
+  const { loading, userInfo, error } = useSelector(state => state.authLogin)
+
   const [formData, setFormData] = useState({
     name: "",
     email: "",
-    password: "",
-  });
-  const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
+    password: ""
+  })
+  const [showPassword, setShowPassword] = useState(false)
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-    setError("");
-  };
+  useEffect(() => {
+    if (userInfo) {
+      navigate("/dashboard")
+    }
+  }, [userInfo, navigate])
+
+  const handleChange = e => {
+    const { name, value } = e.target
+    setFormData(prev => ({ ...prev, [name]: value }))
+  }
 
   const passwordRequirements = [
     { label: "At least 8 characters", met: formData.password.length >= 8 },
     { label: "Contains a number", met: /\d/.test(formData.password) },
-    { label: "Contains uppercase", met: /[A-Z]/.test(formData.password) },
-  ];
+    { label: "Contains uppercase", met: /[A-Z]/.test(formData.password) }
+  ]
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError("");
-
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-
-    // Demo registration
-    if (formData.name && formData.email && formData.password) {
-      login();
-      navigate("/dashboard");
-    } else {
-      setError("Please fill in all fields");
-    }
-    setIsLoading(false);
-  };
+  const handleSubmit = async e => {
+    e.preventDefault()
+    dispatch(register(formData.name, formData.email, formData.password))
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-12">
@@ -184,10 +177,10 @@ const Register = ({ onRegister }) => {
 
             <button
               type="submit"
-              disabled={isLoading}
+              disabled={loading}
               className="angrit-btn-primary w-full flex items-center justify-center gap-2"
             >
-              {isLoading ? (
+              {loading ? (
                 <>
                   <Loader2 className="w-5 h-5 animate-spin" />
                   Creating account...
@@ -201,7 +194,10 @@ const Register = ({ onRegister }) => {
           <div className="mt-6 pt-6 border-t border-border text-center">
             <p className="text-muted-foreground text-sm">
               Already have an account?{" "}
-              <Link to="/login" className="text-primary hover:underline font-medium">
+              <Link
+                to="/login"
+                className="text-primary hover:underline font-medium"
+              >
                 Sign in
               </Link>
             </p>
@@ -209,8 +205,7 @@ const Register = ({ onRegister }) => {
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default Register;
-
+export default Register

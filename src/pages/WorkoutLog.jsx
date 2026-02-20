@@ -1,18 +1,28 @@
-import React from "react";
-import { useState, useEffect } from "react";
-import { Plus, Trash2, Save, Loader2, Calendar, Clock } from "lucide-react";
-import Navbar from "../components/Navbar";
+import React from "react"
+import { useState, useEffect } from "react"
+import { Plus, Trash2, Save, Loader2, Calendar, Clock } from "lucide-react"
+import Navbar from "../components/Navbar"
+import { useDispatch, useSelector } from "react-redux"
+import {
+  listWorkoutLogs,
+  createWorkoutLog,
+  deleteWorkoutLog
+} from "../actions/workoutActions"
 
 const WorkoutLog = () => {
-  const [workoutHistory, setWorkoutHistory] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
+  const dispatch = useDispatch()
+  const {
+    loading: isLoading,
+    workouts: workoutHistory,
+    createLoading: isSaving
+  } = useSelector(state => state.workoutLog)
+
   const [formData, setFormData] = useState({
     exercise: "",
     sets: "",
     reps: "",
-    weight: "",
-  });
+    weight: ""
+  })
 
   const exercises = [
     "Bench Press",
@@ -24,74 +34,57 @@ const WorkoutLog = () => {
     "Barbell Curl",
     "Tricep Dips",
     "Leg Press",
-    "Lat Pulldown",
-  ];
+    "Lat Pulldown"
+  ]
 
   useEffect(() => {
-    const fetchHistory = async () => {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      setWorkoutHistory([
-        { id: 1, exercise: "Bench Press", sets: 4, reps: 8, weight: 100, date: "2024-01-15" },
-        { id: 2, exercise: "Squat", sets: 4, reps: 6, weight: 140, date: "2024-01-15" },
-        { id: 3, exercise: "Deadlift", sets: 3, reps: 5, weight: 160, date: "2024-01-14" },
-        { id: 4, exercise: "Pull-ups", sets: 4, reps: 10, weight: 0, date: "2024-01-14" },
-        { id: 5, exercise: "Military Press", sets: 3, reps: 10, weight: 60, date: "2024-01-13" },
-      ]);
-      setIsLoading(false);
-    };
-    fetchHistory();
-  }, []);
+    dispatch(listWorkoutLogs())
+  }, [dispatch])
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
+  const handleChange = e => {
+    const { name, value } = e.target
+    setFormData(prev => ({ ...prev, [name]: value }))
+  }
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!formData.exercise || !formData.sets || !formData.reps) return;
+  const handleSubmit = async e => {
+    e.preventDefault()
+    if (!formData.exercise || !formData.sets || !formData.reps) return
+    dispatch(
+      createWorkoutLog({
+        exercise: formData.exercise,
+        sets: parseInt(formData.sets),
+        reps: parseInt(formData.reps),
+        weight: parseInt(formData.weight) || 0,
+        date: new Date().toISOString().split("T")[0]
+      })
+    )
+    setFormData({ exercise: "", sets: "", reps: "", weight: "" })
+  }
 
-    setIsSaving(true);
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    const newEntry = {
-      id: Date.now(),
-      exercise: formData.exercise,
-      sets: parseInt(formData.sets),
-      reps: parseInt(formData.reps),
-      weight: parseInt(formData.weight) || 0,
-      date: new Date().toISOString().split("T")[0],
-    };
-
-    setWorkoutHistory((prev) => [newEntry, ...prev]);
-    setFormData({ exercise: "", sets: "", reps: "", weight: "" });
-    setIsSaving(false);
-  };
-
-  const handleDelete = (id) => {
-    setWorkoutHistory((prev) => prev.filter((entry) => entry.id !== id));
-  };
+  const handleDelete = id => {
+    dispatch(deleteWorkoutLog(id))
+  }
 
   const groupedHistory = workoutHistory.reduce((acc, entry) => {
-    if (!acc[entry.date]) acc[entry.date] = [];
-    acc[entry.date].push(entry);
-    return acc;
-  }, {});
+    const date = entry.date ?? new Date().toISOString().split("T")[0]
+    if (!acc[date]) acc[date] = []
+    acc[date].push(entry)
+    return acc
+  }, {})
 
-  const formatDate = (dateStr) => {
-    const date = new Date(dateStr);
-    const today = new Date();
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
-
-    if (dateStr === today.toISOString().split("T")[0]) return "Today";
-    if (dateStr === yesterday.toISOString().split("T")[0]) return "Yesterday";
+  const formatDate = dateStr => {
+    const date = new Date(dateStr)
+    const today = new Date()
+    const yesterday = new Date(today)
+    yesterday.setDate(yesterday.getDate() - 1)
+    if (dateStr === today.toISOString().split("T")[0]) return "Today"
+    if (dateStr === yesterday.toISOString().split("T")[0]) return "Yesterday"
     return date.toLocaleDateString("en-US", {
       weekday: "short",
       month: "short",
-      day: "numeric",
-    });
-  };
+      day: "numeric"
+    })
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -127,7 +120,7 @@ const WorkoutLog = () => {
                   required
                 >
                   <option value="">Select exercise</option>
-                  {exercises.map((ex) => (
+                  {exercises.map(ex => (
                     <option key={ex} value={ex}>
                       {ex}
                     </option>
@@ -206,7 +199,7 @@ const WorkoutLog = () => {
 
           {isLoading ? (
             <div className="space-y-4">
-              {[1, 2, 3].map((i) => (
+              {[1, 2, 3].map(i => (
                 <div key={i} className="angrit-card animate-pulse">
                   <div className="h-4 bg-muted rounded w-32 mb-4"></div>
                   <div className="space-y-3">
@@ -236,9 +229,8 @@ const WorkoutLog = () => {
                     <Calendar className="w-4 h-4" />
                     {formatDate(date)}
                   </h3>
-
                   <div className="space-y-3">
-                    {entries.map((entry) => (
+                    {entries.map(entry => (
                       <div
                         key={entry.id}
                         className="flex items-center justify-between p-4 rounded-xl bg-secondary/50 group"
@@ -266,8 +258,7 @@ const WorkoutLog = () => {
         </div>
       </main>
     </div>
-  );
-};
+  )
+}
 
-export default WorkoutLog;
-
+export default WorkoutLog

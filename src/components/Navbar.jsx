@@ -1,27 +1,30 @@
 import React from "react";
-import { useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Menu, X, Dumbbell, User, LogOut } from "lucide-react";
-import { useAuth } from "../context/AuthContext";
+import { useState } from "react"
+import { Link, useLocation, useNavigate } from "react-router-dom"
+import { Menu, X, Dumbbell, User, LogOut } from "lucide-react"
+import { useDispatch, useSelector } from "react-redux"
+import { logout } from "../actions/authActions"
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const location = useLocation()
   const navigate = useNavigate()
-  const { isAuthenticated, logout } = useAuth()
+  const dispatch = useDispatch()
+  const { userInfo } = useSelector(state => state.authLogin)
+  const isAuthenticated = !!userInfo
 
   const navLinks = [
     { path: "/dashboard", label: "Dashboard" },
     { path: "/program", label: "Program" },
     { path: "/exercises", label: "Exercises" },
     { path: "/workout-log", label: "Workout Log" },
-    { path: "/chat-coach", label: "Chat Coach" },
-  ];
+    { path: "/chat-coach", label: "Chat Coach" }
+  ]
 
-  const isActive = (path) => location.pathname === path;
+  const isActive = path => location.pathname === path
 
   const handleLogout = () => {
-    logout()
+    dispatch(logout())
     navigate("/login")
   }
 
@@ -46,7 +49,7 @@ const Navbar = () => {
           <div className="hidden md:flex items-center gap-8">
             {isAuthenticated ? (
               <>
-                {navLinks.map((link) => (
+                {navLinks.map(link => (
                   <Link
                     key={link.path}
                     to={link.path}
@@ -93,7 +96,11 @@ const Navbar = () => {
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             className="md:hidden p-2 rounded-xl bg-secondary"
           >
-            {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            {isMenuOpen ? (
+              <X className="w-5 h-5" />
+            ) : (
+              <Menu className="w-5 h-5" />
+            )}
           </button>
         </div>
       </div>
@@ -104,7 +111,7 @@ const Navbar = () => {
           <div className="px-4 py-4 space-y-2">
             {isAuthenticated ? (
               <>
-                {navLinks.map((link) => (
+                {navLinks.map(link => (
                   <Link
                     key={link.path}
                     to={link.path}
@@ -128,8 +135,8 @@ const Navbar = () => {
                 </Link>
                 <button
                   onClick={() => {
-                    handleLogout();
-                    setIsMenuOpen(false);
+                    handleLogout()
+                    setIsMenuOpen(false)
                   }}
                   className="w-full text-left px-4 py-3 rounded-xl font-medium text-destructive hover:bg-destructive/10"
                 >
@@ -158,7 +165,7 @@ const Navbar = () => {
         </div>
       )}
     </nav>
-  );
-};
+  )
+}
 
-export default Navbar;
+export default Navbar

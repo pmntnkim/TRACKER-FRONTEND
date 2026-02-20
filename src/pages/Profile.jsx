@@ -1,12 +1,19 @@
-import React from "react";
-import { useState, useEffect } from "react";
-import { User, Save, Loader2 } from "lucide-react";
-import Navbar from "../components/Navbar";
+import React from "react"
+import { useState, useEffect } from "react"
+import { User, Save, Loader2 } from "lucide-react"
+import Navbar from "../components/Navbar"
+import { useDispatch, useSelector } from "react-redux"
+import { getUserProfile, updateUserProfile } from "../actions/userActions"
 
 const Profile = () => {
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
-  const [successMessage, setSuccessMessage] = useState("");
+  const dispatch = useDispatch()
+  const {
+    loading: isLoading,
+    profile,
+    updateLoading: isSaving,
+    updateSuccess
+  } = useSelector(state => state.userProfile)
+
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -14,50 +21,54 @@ const Profile = () => {
     height: "",
     weight: "",
     fitnessGoal: "",
-    fitnessLevel: "",
-  });
+    fitnessLevel: ""
+  })
 
   const fitnessGoals = [
     "Build Muscle",
     "Lose Weight",
     "Improve Strength",
     "Increase Endurance",
-    "General Fitness",
-  ];
-
-  const fitnessLevels = ["Beginner", "Intermediate", "Advanced", "Expert"];
+    "General Fitness"
+  ]
+  const fitnessLevels = ["Beginner", "Intermediate", "Advanced", "Expert"]
 
   useEffect(() => {
-    const fetchProfile = async () => {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+    dispatch(getUserProfile())
+  }, [dispatch])
+
+  useEffect(() => {
+    if (profile) {
       setFormData({
-        name: "John Doe",
-        email: "john@example.com",
-        age: "28",
-        height: "180",
-        weight: "85",
-        fitnessGoal: "Build Muscle",
-        fitnessLevel: "Intermediate",
-      });
-      setIsLoading(false);
-    };
-    fetchProfile();
-  }, []);
+        name: profile.name ?? "",
+        email: profile.email ?? "",
+        age: profile.age?.toString() ?? "",
+        height: profile.height?.toString() ?? "",
+        weight: profile.weight?.toString() ?? "",
+        fitnessGoal: profile.fitness_goal ?? profile.fitnessGoal ?? "",
+        fitnessLevel: profile.fitness_level ?? profile.fitnessLevel ?? ""
+      })
+    }
+  }, [profile])
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-    setSuccessMessage("");
-  };
+  const handleChange = e => {
+    const { name, value } = e.target
+    setFormData(prev => ({ ...prev, [name]: value }))
+  }
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsSaving(true);
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    setIsSaving(false);
-    setSuccessMessage("Profile updated successfully!");
-    setTimeout(() => setSuccessMessage(""), 3000);
-  };
+  const handleSubmit = async e => {
+    e.preventDefault()
+    dispatch(
+      updateUserProfile({
+        name: formData.name,
+        age: parseInt(formData.age),
+        height: parseInt(formData.height),
+        weight: parseInt(formData.weight),
+        fitness_goal: formData.fitnessGoal,
+        fitness_level: formData.fitnessLevel
+      })
+    )
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -77,7 +88,7 @@ const Profile = () => {
         {isLoading ? (
           <div className="angrit-card animate-pulse">
             <div className="space-y-6">
-              {[1, 2, 3, 4, 5].map((i) => (
+              {[1, 2, 3, 4, 5].map(i => (
                 <div key={i}>
                   <div className="h-4 bg-muted rounded w-24 mb-2"></div>
                   <div className="h-12 bg-muted rounded"></div>
@@ -93,8 +104,12 @@ const Profile = () => {
                 <User className="w-10 h-10 text-primary" />
               </div>
               <div>
-                <h3 className="font-semibold text-lg">{formData.name}</h3>
-                <p className="text-muted-foreground text-sm">{formData.email}</p>
+                <h3 className="font-semibold text-lg">
+                  {formData.name || "Your Name"}
+                </h3>
+                <p className="text-muted-foreground text-sm">
+                  {formData.email}
+                </p>
               </div>
             </div>
 
@@ -103,7 +118,6 @@ const Profile = () => {
               <h2 className="font-display text-xl font-bold mb-6">
                 Personal Information
               </h2>
-
               <div className="grid sm:grid-cols-2 gap-5">
                 <div className="space-y-2">
                   <label className="block text-sm font-medium">Full Name</label>
@@ -181,7 +195,6 @@ const Profile = () => {
               <h2 className="font-display text-xl font-bold mb-6">
                 Fitness Preferences
               </h2>
-
               <div className="grid sm:grid-cols-2 gap-5">
                 <div className="space-y-2">
                   <label className="block text-sm font-medium">
@@ -193,7 +206,8 @@ const Profile = () => {
                     onChange={handleChange}
                     className="angrit-input w-full"
                   >
-                    {fitnessGoals.map((goal) => (
+                    <option value="">Select goal</option>
+                    {fitnessGoals.map(goal => (
                       <option key={goal} value={goal}>
                         {goal}
                       </option>
@@ -211,7 +225,8 @@ const Profile = () => {
                     onChange={handleChange}
                     className="angrit-input w-full"
                   >
-                    {fitnessLevels.map((level) => (
+                    <option value="">Select level</option>
+                    {fitnessLevels.map(level => (
                       <option key={level} value={level}>
                         {level}
                       </option>
@@ -222,9 +237,9 @@ const Profile = () => {
             </div>
 
             {/* Success Message */}
-            {successMessage && (
+            {updateSuccess && (
               <div className="p-4 rounded-xl bg-success/10 border border-success/20 text-success text-sm animate-fade-in">
-                {successMessage}
+                Profile updated successfully!
               </div>
             )}
 
@@ -250,7 +265,7 @@ const Profile = () => {
         )}
       </main>
     </div>
-  );
-};
+  )
+}
 
-export default Profile;
+export default Profile

@@ -1,88 +1,36 @@
-import React from "react";
-import { useState, useRef, useEffect } from "react";
-import { Send, Bot, User, Loader2, Lock, Sparkles } from "lucide-react";
-import Navbar from "../components/Navbar";
+import React from "react"
+import { useState, useRef, useEffect } from "react"
+import { Send, Bot, User, Loader2, Lock, Sparkles } from "lucide-react"
+import Navbar from "../components/Navbar"
+import { useDispatch, useSelector } from "react-redux"
+import { sendMessage, resetChat } from "../actions/chatActions"
 
 const ChatCoach = () => {
-  const [messages, setMessages] = useState([
-    {
-      id: 1,
-      role: "assistant",
-      content:
-        "Hey! I'm your AI fitness coach. Ask me anything about training, nutrition, recovery, or your workout program. Let's crush your goals together! 💪",
-      timestamp: new Date(),
-    },
-  ]);
-  const [input, setInput] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [messageCount, setMessageCount] = useState(0);
-  const messagesEndRef = useRef(null);
+  const dispatch = useDispatch()
+  const { loading: isLoading, messages, messageCount } = useSelector(
+    state => state.chat
+  )
 
-  const maxFreeMessages = 5;
-  const isPremiumLocked = messageCount >= maxFreeMessages;
+  const [input, setInput] = useState("")
+  const messagesEndRef = useRef(null)
+
+  const maxFreeMessages = 5
+  const isPremiumLocked = messageCount >= maxFreeMessages
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+  }
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+    scrollToBottom()
+  }, [messages])
 
-  const simulateAIResponse = (userMessage) => {
-    const responses = {
-      default:
-        "That's a great question! Based on your training goals, I'd recommend focusing on progressive overload. Start with a weight you can handle for 8-10 reps with good form, then gradually increase either weight, reps, or sets each week. Consistency is key! 🎯",
-      nutrition:
-        "For muscle building, aim for 1.6-2.2g of protein per kg of bodyweight. Space it across 4-5 meals throughout the day. Don't forget carbs for energy and fats for hormone production! A balanced approach works best. 🍗",
-      recovery:
-        "Recovery is where the magic happens! Aim for 7-9 hours of quality sleep, stay hydrated, and consider active recovery like light walking or stretching on rest days. Your muscles grow when you rest, not when you train! 😴",
-      motivation:
-        "Remember why you started! Every rep, every set, every workout is taking you closer to your goals. Progress isn't always linear, but consistency always wins. You've got this! 🔥",
-    };
-
-    const lowerMessage = userMessage.toLowerCase();
-    if (lowerMessage.includes("eat") || lowerMessage.includes("nutrition") || lowerMessage.includes("diet") || lowerMessage.includes("protein")) {
-      return responses.nutrition;
-    }
-    if (lowerMessage.includes("rest") || lowerMessage.includes("recover") || lowerMessage.includes("sleep")) {
-      return responses.recovery;
-    }
-    if (lowerMessage.includes("motivation") || lowerMessage.includes("tired") || lowerMessage.includes("give up")) {
-      return responses.motivation;
-    }
-    return responses.default;
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!input.trim() || isPremiumLocked) return;
-
-    const userMessage = {
-      id: Date.now(),
-      role: "user",
-      content: input.trim(),
-      timestamp: new Date(),
-    };
-
-    setMessages((prev) => [...prev, userMessage]);
-    setInput("");
-    setIsLoading(true);
-    setMessageCount((prev) => prev + 1);
-
-    // Simulate AI response
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-
-    const aiResponse = {
-      id: Date.now() + 1,
-      role: "assistant",
-      content: simulateAIResponse(userMessage.content),
-      timestamp: new Date(),
-    };
-
-    setMessages((prev) => [...prev, aiResponse]);
-    setIsLoading(false);
-  };
+  const handleSubmit = async e => {
+    e.preventDefault()
+    if (!input.trim() || isPremiumLocked || isLoading) return
+    dispatch(sendMessage(input.trim()))
+    setInput("")
+  }
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -106,7 +54,7 @@ const ChatCoach = () => {
 
         {/* Messages */}
         <div className="flex-1 overflow-y-auto space-y-4 pb-4">
-          {messages.map((message) => (
+          {messages.map(message => (
             <div
               key={message.id}
               className={`flex gap-3 animate-fade-in ${
@@ -134,9 +82,9 @@ const ChatCoach = () => {
                       : "text-muted-foreground"
                   }`}
                 >
-                  {message.timestamp.toLocaleTimeString([], {
+                  {new Date(message.timestamp).toLocaleTimeString([], {
                     hour: "2-digit",
-                    minute: "2-digit",
+                    minute: "2-digit"
                   })}
                 </p>
               </div>
@@ -181,9 +129,12 @@ const ChatCoach = () => {
                   You've used all {maxFreeMessages} free messages. Upgrade to
                   Premium for unlimited AI coaching.
                 </p>
-                <button className="angrit-btn-primary text-sm flex items-center gap-2">
+                <button
+                  onClick={() => dispatch(resetChat())}
+                  className="angrit-btn-primary text-sm flex items-center gap-2"
+                >
                   <Sparkles className="w-4 h-4" />
-                  Unlock Premium
+                  Reset Chat (Demo)
                 </button>
               </div>
             </div>
@@ -195,7 +146,7 @@ const ChatCoach = () => {
           <input
             type="text"
             value={input}
-            onChange={(e) => setInput(e.target.value)}
+            onChange={e => setInput(e.target.value)}
             placeholder={
               isPremiumLocked
                 ? "Upgrade to continue chatting..."
@@ -213,7 +164,6 @@ const ChatCoach = () => {
           </button>
         </form>
 
-        {/* Message Counter */}
         {!isPremiumLocked && (
           <p className="text-center text-xs text-muted-foreground mt-3">
             {maxFreeMessages - messageCount} free messages remaining
@@ -221,7 +171,7 @@ const ChatCoach = () => {
         )}
       </main>
     </div>
-  );
-};
+  )
+}
 
-export default ChatCoach;
+export default ChatCoach
