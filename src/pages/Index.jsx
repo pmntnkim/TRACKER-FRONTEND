@@ -154,36 +154,6 @@ const Index = () => {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-4xl mx-auto">
-          <div className="angrit-card-elevated text-center py-16 px-8 relative overflow-hidden">
-            {/* Background Glow */}
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-primary/5" />
-            
-            <div className="relative z-10">
-              <div className="w-16 h-16 rounded-2xl bg-primary flex items-center justify-center mx-auto mb-6">
-                <TrendingUp className="w-8 h-8 text-primary-foreground" />
-              </div>
-              <h2 className="font-display text-3xl sm:text-4xl font-bold mb-4">
-                Ready to Transform?
-              </h2>
-              <p className="text-muted-foreground mb-8 max-w-md mx-auto">
-                Join thousands of athletes who've already leveled up their
-                training. Start your journey today.
-              </p>
-              <Link
-                to="/register"
-                className="angrit-btn-primary inline-flex items-center gap-2 text-lg px-8 py-4 group"
-              >
-                Get Started Free
-                <ChevronRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* Footer */}
       <footer className="border-t border-border py-8 px-4">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
