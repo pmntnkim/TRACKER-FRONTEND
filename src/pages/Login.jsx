@@ -107,9 +107,9 @@ const Login = () => {
                 />
                 <span className="text-muted-foreground">Remember me</span>
               </label>
-              <a href="#" className="text-primary hover:underline">
+              <Link to="/forgot-password" className="text-primary hover:underline">
                 Forgot password?
-              </a>
+              </Link>
             </div>
 
             <button

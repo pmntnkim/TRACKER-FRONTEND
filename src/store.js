@@ -1,7 +1,7 @@
 import { configureStore } from "@reduxjs/toolkit"
 import { combineReducers } from "redux"
 
-import { authLoginReducer } from "./reducers/authReducers"
+import { authLoginReducer, forgotPasswordReducer, resetPasswordReducer } from "./reducers/authReducers"
 import { userProfileReducer } from "./reducers/userReducers"
 import { chatReducer } from "./reducers/chatReducers"
 import { programReducer } from "./reducers/programReducers"
@@ -17,6 +17,8 @@ import {
 // combine reducers
 const rootReducer = combineReducers({
   authLogin: authLoginReducer,
+  forgotPassword: forgotPasswordReducer,
+  resetPassword: resetPasswordReducer,
   userProfile: userProfileReducer,
   chat: chatReducer,
   program: programReducer,
