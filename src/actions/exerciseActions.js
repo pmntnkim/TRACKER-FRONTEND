@@ -8,28 +8,58 @@ import {
 } from "../constants/exerciseConstants";
 import axios from "axios";
 
-export const listExercises = () => async (dispatch) => {
+const getErrorMessage = (error) => {
+    return (
+        error.response?.data?.detail ||
+        error.response?.data?.message ||
+        error.message
+    );
+};
+
+export const listExercises = () => async (dispatch, getState) => {
     try {
         dispatch({ type: EXERCISE_LIST_REQUEST });
-        const { data } = await axios.get('https://127.0.0.1:8000/api/exercises');
+
+        const {
+            authLogin: { userInfo },
+        } = getState();
+
+        const config = {
+            headers: {
+                Authorization: `Bearer ${userInfo?.token}`,
+            },
+        };
+
+        const { data } = await axios.get("http://127.0.0.1:8000/api/exercises/", config);
         dispatch({ type: EXERCISE_LIST_SUCCESS, payload: data });
     } catch (error) {
         dispatch({
             type: EXERCISE_LIST_FAIL,
-            payload: error.response && error.response.data.message ? error.response.data.message : error.message,
+            payload: getErrorMessage(error),
         });
     }
 };
 
-export const getExerciseDetails = (id) => async (dispatch) => {
+export const getExerciseDetails = (id) => async (dispatch, getState) => {
     try {
         dispatch({ type: EXERCISE_DETAILS_REQUEST });
-        const { data } = await axios.get(`https://127.0.0.1:8000/api/exercises/${id}`);
+
+        const {
+            authLogin: { userInfo },
+        } = getState();
+
+        const config = {
+            headers: {
+                Authorization: `Bearer ${userInfo?.token}`,
+            },
+        };
+
+        const { data } = await axios.get(`http://127.0.0.1:8000/api/exercises/${id}/`, config);
         dispatch({ type: EXERCISE_DETAILS_SUCCESS, payload: data });
     } catch (error) {
         dispatch({
             type: EXERCISE_DETAILS_FAIL,
-            payload: error.response && error.response.data.message ? error.response.data.message : error.message,
+            payload: getErrorMessage(error),
         });
     }
 };

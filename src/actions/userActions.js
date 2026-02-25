@@ -8,29 +8,52 @@ import {
 } from "../constants/userConstants";
 import axios from "axios";
 
-export const getUserProfile = () => async (dispatch) => {
+const getErrorMessage = (error) => {
+    return (
+        error.response?.data?.detail ||
+        error.response?.data?.message ||
+        error.message
+    );
+};
+
+export const getUserProfile = () => async (dispatch, getState) => {
     try {
         dispatch({ type: USER_PROFILE_REQUEST });
-        const { data } = await axios.get('https://127.0.0.1:8000/api/users/profile/');
+        const {
+            authLogin: { userInfo },
+        } = getState();
+
+        const config = {
+            headers: {
+                Authorization: `Bearer ${userInfo?.token}`,
+            },
+        };
+
+        const { data } = await axios.get("http://127.0.0.1:8000/api/users/profile/", config);
         dispatch({ type: USER_PROFILE_SUCCESS, payload: data });
     } catch (error) {
         dispatch({
             type: USER_PROFILE_FAIL,
-            payload: error.response && error.response.data.message ? error.response.data.message : error.message,
+            payload: getErrorMessage(error),
         });
     }
 };
 
-export const updateUserProfile = (user) => async (dispatch) => {
+export const updateUserProfile = (user) => async (dispatch, getState) => {
     try {
         dispatch({ type: USER_PROFILE_UPDATE_REQUEST });
+        const {
+            authLogin: { userInfo },
+        } = getState();
+
         const config = {
             headers: {
                 "Content-Type": "application/json",
+                Authorization: `Bearer ${userInfo?.token}`,
             },
         };
         const { data } = await axios.put(
-            'https://127.0.0.1:8000/api/users/profile/',
+            "http://127.0.0.1:8000/api/users/profile/",
             user,
             config
         );
@@ -38,7 +61,7 @@ export const updateUserProfile = (user) => async (dispatch) => {
     } catch (error) {
         dispatch({
             type: USER_PROFILE_UPDATE_FAIL,
-            payload: error.response && error.response.data.message ? error.response.data.message : error.message,
+            payload: getErrorMessage(error),
         });
     }
 };

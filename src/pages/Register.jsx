@@ -13,7 +13,7 @@ const Register = () => {
   const { loading, userInfo, error } = useSelector(state => state.authLogin)
 
   const [formData, setFormData] = useState({
-    name: "",
+    username: "",
     email: "",
     password: ""
   })
@@ -38,7 +38,7 @@ const Register = () => {
 
   const handleSubmit = async e => {
     e.preventDefault()
-    dispatch(register(formData.name, formData.email, formData.password))
+    dispatch(register(formData.username, formData.email, formData.password))
   }
 
   return (
@@ -70,14 +70,14 @@ const Register = () => {
 
             <div className="space-y-2">
               <label className="block text-sm font-medium text-foreground">
-                Full Name
+                Username
               </label>
               <input
                 type="text"
-                name="name"
-                value={formData.name}
+                name="username"
+                value={formData.username}
                 onChange={handleChange}
-                placeholder="John Doe"
+                placeholder="your_username"
                 className="angrit-input w-full"
                 required
               />

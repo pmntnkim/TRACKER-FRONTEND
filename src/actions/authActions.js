@@ -16,7 +16,15 @@ import {
 } from "../constants/authConstants";
 import axios from "axios";
 
-export const login = (email, password) => async (dispatch) => {
+const getErrorMessage = (error) => {
+    return (
+        error.response?.data?.detail ||
+        error.response?.data?.message ||
+        error.message
+    );
+};
+
+export const login = (identifier, password) => async (dispatch) => {
     try {
         dispatch({ type: USER_LOGIN_REQUEST });
         const config = {
@@ -25,20 +33,21 @@ export const login = (email, password) => async (dispatch) => {
             },
         };
         const { data } = await axios.post(
-            'https://127.0.0.1:8000/api/users/login/',
-            { email, password },
+            "http://127.0.0.1:8000/api/users/login/",
+            { username: identifier, password },
             config
         );
         dispatch({ type: USER_LOGIN_SUCCESS, payload: data });
+        localStorage.setItem("angrit_token", data.token);
     } catch (error) {
         dispatch({
             type: USER_LOGIN_FAIL,
-            payload: error.response && error.response.data.message ? error.response.data.message : error.message,
+            payload: getErrorMessage(error),
         });
     }
 };
 
-export const register = (name, email, password) => async (dispatch) => {
+export const register = (username, email, password) => async (dispatch) => {
     try {
         dispatch({ type: USER_REGISTER_REQUEST });
         const config = {
@@ -47,20 +56,22 @@ export const register = (name, email, password) => async (dispatch) => {
             },
         };
         const { data } = await axios.post(
-            'https://127.0.0.1:8000/api/users/register/',
-            { name, email, password },
+            "http://127.0.0.1:8000/api/auth/register/",
+            { username, email, password },
             config
         );
         dispatch({ type: USER_REGISTER_SUCCESS, payload: data });
+        localStorage.setItem("angrit_token", data.token);
     } catch (error) {
         dispatch({
             type: USER_REGISTER_FAIL,
-            payload: error.response && error.response.data.message ? error.response.data.message : error.message,
+            payload: getErrorMessage(error),
         });
     }
 };
 
 export const logout = () => async (dispatch) => {
+    localStorage.removeItem("angrit_token");
     dispatch({ type: USER_LOGOUT });
 };
 

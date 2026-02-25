@@ -10,7 +10,7 @@ const Login = () => {
   const dispatch = useDispatch()
   const { loading, userInfo, error } = useSelector(state => state.authLogin)
 
-  const [formData, setFormData] = useState({ email: "", password: "" })
+  const [formData, setFormData] = useState({ username: "", password: "" })
   const [showPassword, setShowPassword] = useState(false)
 
   useEffect(() => {
@@ -26,7 +26,7 @@ const Login = () => {
 
   const handleSubmit = async e => {
     e.preventDefault()
-    dispatch(login(formData.email, formData.password))
+    dispatch(login(formData.username, formData.password))
   }
 
   return (
@@ -58,14 +58,14 @@ const Login = () => {
 
             <div className="space-y-2">
               <label className="block text-sm font-medium text-foreground">
-                Email
+                Username or Email
               </label>
               <input
-                type="email"
-                name="email"
-                value={formData.email}
+                type="text"
+                name="username"
+                value={formData.username}
                 onChange={handleChange}
-                placeholder="you@example.com"
+                placeholder="your_username or you@example.com"
                 className="angrit-input w-full"
                 required
               />

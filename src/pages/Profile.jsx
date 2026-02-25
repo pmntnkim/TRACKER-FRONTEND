@@ -15,23 +15,28 @@ const Profile = () => {
   } = useSelector(state => state.userProfile)
 
   const [formData, setFormData] = useState({
-    name: "",
+    username: "",
     email: "",
     age: "",
-    height: "",
-    weight: "",
+    height_cm: "",
+    weight_kg: "",
     fitnessGoal: "",
     fitnessLevel: ""
   })
 
   const fitnessGoals = [
-    "Build Muscle",
-    "Lose Weight",
-    "Improve Strength",
-    "Increase Endurance",
-    "General Fitness"
+    { value: "BUILD_MUSCLE", label: "Build Muscle" },
+    { value: "LOSE_WEIGHT", label: "Lose Weight" },
+    { value: "IMPROVE_STRENGTH", label: "Improve Strength" },
+    { value: "INCREASE_ENDURANCE", label: "Increase Endurance" },
+    { value: "GENERAL_FITNESS", label: "General Fitness" }
   ]
-  const fitnessLevels = ["Beginner", "Intermediate", "Advanced", "Expert"]
+  const fitnessLevels = [
+    { value: "BEGINNER", label: "Beginner" },
+    { value: "INTERMEDIATE", label: "Intermediate" },
+    { value: "ADVANCED", label: "Advanced" },
+    { value: "EXPERT", label: "Expert" }
+  ]
 
   useEffect(() => {
     dispatch(getUserProfile())
@@ -40,11 +45,11 @@ const Profile = () => {
   useEffect(() => {
     if (profile) {
       setFormData({
-        name: profile.name ?? "",
+        username: profile.username ?? "",
         email: profile.email ?? "",
         age: profile.age?.toString() ?? "",
-        height: profile.height?.toString() ?? "",
-        weight: profile.weight?.toString() ?? "",
+        height_cm: profile.height_cm?.toString() ?? "",
+        weight_kg: profile.weight_kg?.toString() ?? "",
         fitnessGoal: profile.fitness_goal ?? profile.fitnessGoal ?? "",
         fitnessLevel: profile.fitness_level ?? profile.fitnessLevel ?? ""
       })
@@ -60,10 +65,9 @@ const Profile = () => {
     e.preventDefault()
     dispatch(
       updateUserProfile({
-        name: formData.name,
-        age: parseInt(formData.age),
-        height: parseInt(formData.height),
-        weight: parseInt(formData.weight),
+        age: formData.age ? parseInt(formData.age) : null,
+        height_cm: formData.height_cm ? parseInt(formData.height_cm) : null,
+        weight_kg: formData.weight_kg ? parseFloat(formData.weight_kg) : null,
         fitness_goal: formData.fitnessGoal,
         fitness_level: formData.fitnessLevel
       })
@@ -105,7 +109,7 @@ const Profile = () => {
               </div>
               <div>
                 <h3 className="font-semibold text-lg">
-                  {formData.name || "Your Name"}
+                  {formData.username || "Your Username"}
                 </h3>
                 <p className="text-muted-foreground text-sm">
                   {formData.email}
@@ -120,13 +124,13 @@ const Profile = () => {
               </h2>
               <div className="grid sm:grid-cols-2 gap-5">
                 <div className="space-y-2">
-                  <label className="block text-sm font-medium">Full Name</label>
+                  <label className="block text-sm font-medium">Username</label>
                   <input
                     type="text"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleChange}
+                    name="username"
+                    value={formData.username}
                     className="angrit-input w-full"
+                    disabled
                   />
                 </div>
 
@@ -159,8 +163,8 @@ const Profile = () => {
                   <div className="relative">
                     <input
                       type="number"
-                      name="height"
-                      value={formData.height}
+                      name="height_cm"
+                      value={formData.height_cm}
                       onChange={handleChange}
                       className="angrit-input w-full pr-12"
                       placeholder="Height"
@@ -176,8 +180,8 @@ const Profile = () => {
                   <div className="relative">
                     <input
                       type="number"
-                      name="weight"
-                      value={formData.weight}
+                      name="weight_kg"
+                      value={formData.weight_kg}
                       onChange={handleChange}
                       className="angrit-input w-full pr-12"
                       placeholder="Weight"
@@ -208,8 +212,8 @@ const Profile = () => {
                   >
                     <option value="">Select goal</option>
                     {fitnessGoals.map(goal => (
-                      <option key={goal} value={goal}>
-                        {goal}
+                      <option key={goal.value} value={goal.value}>
+                        {goal.label}
                       </option>
                     ))}
                   </select>
@@ -227,8 +231,8 @@ const Profile = () => {
                   >
                     <option value="">Select level</option>
                     {fitnessLevels.map(level => (
-                      <option key={level} value={level}>
-                        {level}
+                      <option key={level.value} value={level.value}>
+                        {level.label}
                       </option>
                     ))}
                   </select>
