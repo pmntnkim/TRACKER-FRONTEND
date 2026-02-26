@@ -8,7 +8,11 @@ import {
   Loader2,
   Dumbbell,
   Plus,
-  X
+  X,
+  Eye,
+  Save,
+  Pencil,
+  Trash2
 } from "lucide-react"
 import Navbar from "../components/Navbar"
 import { useDispatch, useSelector } from "react-redux"
@@ -27,11 +31,30 @@ const Program = () => {
   const [splitNameInput, setSplitNameInput] = useState("")
   const [programNameInput, setProgramNameInput] = useState("")
   const [customSplit, setCustomSplit] = useState(null)
+  const [savedSplits, setSavedSplits] = useState([])
   const [selectedExerciseByProgram, setSelectedExerciseByProgram] = useState({})
 
   useEffect(() => {
     dispatch(listExercises())
   }, [dispatch])
+
+  useEffect(() => {
+    const storedSplits = localStorage.getItem("workout_splits")
+    if (storedSplits) {
+      try {
+        const parsedSplits = JSON.parse(storedSplits)
+        if (Array.isArray(parsedSplits)) {
+          setSavedSplits(parsedSplits)
+        }
+      } catch (error) {
+        setSavedSplits([])
+      }
+    }
+  }, [])
+
+  useEffect(() => {
+    localStorage.setItem("workout_splits", JSON.stringify(savedSplits))
+  }, [savedSplits])
 
   const handleGenerate = () => {
     dispatch(resetProgram())
@@ -48,10 +71,67 @@ const Program = () => {
     if (!splitName) return
 
     setCustomSplit({
+      id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
       name: splitName,
       programs: []
     })
     setSplitNameInput("")
+  }
+
+  const saveCurrentSplit = () => {
+    if (!customSplit) return
+
+    setSavedSplits(prev => {
+      const existingIndex = prev.findIndex(split => split.id === customSplit.id)
+
+      if (existingIndex >= 0) {
+        return prev.map(split =>
+          split.id === customSplit.id
+            ? { ...customSplit, updatedAt: new Date().toISOString() }
+            : split
+        )
+      }
+
+      return [...prev, { ...customSplit, updatedAt: new Date().toISOString() }]
+    })
+  }
+
+  const viewSavedSplit = split => {
+    setCustomSplit(split)
+
+    const defaultExerciseMap = {}
+    split.programs.forEach(programItem => {
+      defaultExerciseMap[programItem.id] = ""
+    })
+    setSelectedExerciseByProgram(defaultExerciseMap)
+  }
+
+  const renameSavedSplit = split => {
+    const nextName = window.prompt("Rename split", split.name)
+    if (!nextName) return
+
+    const trimmedName = nextName.trim()
+    if (!trimmedName) return
+
+    setSavedSplits(prev =>
+      prev.map(item =>
+        item.id === split.id
+          ? { ...item, name: trimmedName, updatedAt: new Date().toISOString() }
+          : item
+      )
+    )
+
+    setCustomSplit(prev =>
+      prev && prev.id === split.id ? { ...prev, name: trimmedName } : prev
+    )
+  }
+
+  const deleteSavedSplit = splitId => {
+    const confirmed = window.confirm("Delete this split?")
+    if (!confirmed) return
+
+    setSavedSplits(prev => prev.filter(split => split.id !== splitId))
+    setCustomSplit(prev => (prev && prev.id === splitId ? null : prev))
   }
 
   const addProgram = () => {
@@ -76,8 +156,16 @@ const Program = () => {
     setSelectedExerciseByProgram(prev => ({ ...prev, [programId]: value }))
   }
 
+  const getExerciseNameById = exerciseId => {
+    const selectedExercise = exercises.find(
+      exercise => String(exercise.id) === String(exerciseId)
+    )
+    return selectedExercise?.name ?? ""
+  }
+
   const addExerciseToProgram = programId => {
-    const exerciseName = (selectedExerciseByProgram[programId] ?? "").trim()
+    const selectedExerciseId = selectedExerciseByProgram[programId] ?? ""
+    const exerciseName = getExerciseNameById(selectedExerciseId).trim()
     if (!exerciseName) return
 
     setCustomSplit(prev => {
@@ -168,6 +256,14 @@ const Program = () => {
               <div className="rounded-xl border border-border p-4 bg-secondary/20">
                 <p className="text-sm text-muted-foreground mb-1">Current Split</p>
                 <h3 className="font-semibold text-lg">{customSplit.name}</h3>
+                <button
+                  type="button"
+                  onClick={saveCurrentSplit}
+                  className="angrit-btn-primary mt-4 inline-flex items-center gap-2"
+                >
+                  <Save className="w-4 h-4" />
+                  Save Split
+                </button>
               </div>
 
               <div className="rounded-xl border border-border p-4 bg-secondary/20">
@@ -226,7 +322,7 @@ const Program = () => {
                               : "Select from exercise library"}
                           </option>
                           {exercises.map(exercise => (
-                            <option key={exercise.id} value={exercise.name}>
+                            <option key={exercise.id} value={exercise.id}>
                               {exercise.name}
                             </option>
                           ))}
@@ -280,6 +376,62 @@ const Program = () => {
               ) : (
                 <p className="text-sm text-muted-foreground">No programs added yet.</p>
               )}
+            </div>
+          )}
+        </section>
+
+        <section className="angrit-card mb-8 animate-slide-up">
+          <h2 className="font-display text-2xl font-bold mb-2">
+            YOUR WORKOUT SPLITS
+          </h2>
+          <p className="text-muted-foreground mb-6">
+            View your saved splits and continue where you left off.
+          </p>
+
+          {savedSplits.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No saved splits yet.</p>
+          ) : (
+            <div className="grid md:grid-cols-2 gap-4">
+              {savedSplits.map(split => (
+                <div
+                  key={split.id}
+                  className="rounded-xl border border-border p-4 bg-secondary/20"
+                >
+                  <h3 className="font-semibold text-lg mb-1">{split.name}</h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    {split.programs.length} program
+                    {split.programs.length === 1 ? "" : "s"}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => viewSavedSplit(split)}
+                    className="angrit-btn-secondary inline-flex items-center gap-2"
+                  >
+                    <Eye className="w-4 h-4" />
+                    View Split
+                  </button>
+                  <div className="flex items-center gap-2 mt-2">
+                    <button
+                      type="button"
+                      onClick={() => renameSavedSplit(split)}
+                      className="angrit-btn-secondary inline-flex items-center justify-center p-2"
+                      aria-label="Rename split"
+                      title="Rename split"
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => deleteSavedSplit(split.id)}
+                      className="angrit-btn-secondary inline-flex items-center justify-center p-2"
+                      aria-label="Delete split"
+                      title="Delete split"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </section>
