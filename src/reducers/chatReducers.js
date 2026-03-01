@@ -47,7 +47,7 @@ export const chatReducer = (state = initialState, action) => {
           {
             id: Date.now() + 1,
             role: "assistant",
-            content: action.payload.message || action.payload.content,
+            content: action.payload.reply || action.payload.message || action.payload.content,
             timestamp: new Date().toISOString()
           }
         ],
