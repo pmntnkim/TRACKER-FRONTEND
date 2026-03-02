@@ -33,17 +33,66 @@ const Program = () => {
   const [customSplit, setCustomSplit] = useState(null)
   const [savedSplits, setSavedSplits] = useState([])
   const [selectedExerciseByProgram, setSelectedExerciseByProgram] = useState({})
+  const [playingUrl, setPlayingUrl] = useState("")
 
   useEffect(() => {
     dispatch(listExercises())
   }, [dispatch])
 
+  // when exercises list updates, sync any objects stored in splits/programs
+  useEffect(() => {
+    if (exercises.length === 0) return
+
+    const syncExercise = exObj => {
+      if (exObj && typeof exObj === "object" && exObj.id) {
+        const updated = exercises.find(e => String(e.id) === String(exObj.id))
+        return updated || exObj
+      }
+      return exObj
+    }
+
+    if (customSplit) {
+      setCustomSplit(prev => {
+        if (!prev) return prev
+        return {
+          ...prev,
+          programs: prev.programs.map(programItem => ({
+            ...programItem,
+            exercises: programItem.exercises.map(syncExercise)
+          }))
+        }
+      })
+    }
+
+    if (savedSplits.length > 0) {
+      setSavedSplits(prev =>
+        prev.map(split => ({
+          ...split,
+          programs: split.programs.map(programItem => ({
+            ...programItem,
+            exercises: programItem.exercises.map(syncExercise)
+          }))
+        }))
+      )
+    }
+  }, [exercises])
+
   useEffect(() => {
     const storedSplits = localStorage.getItem("workout_splits")
     if (storedSplits) {
       try {
-        const parsedSplits = JSON.parse(storedSplits)
+        let parsedSplits = JSON.parse(storedSplits)
         if (Array.isArray(parsedSplits)) {
+          // migrate old string-only exercises into object form
+          parsedSplits = parsedSplits.map(split => ({
+            ...split,
+            programs: split.programs.map(program => ({
+              ...program,
+              exercises: program.exercises.map(ex =>
+                typeof ex === "string" ? { name: ex } : ex
+              )
+            }))
+          }))
           setSavedSplits(parsedSplits)
         }
       } catch (error) {
@@ -156,17 +205,13 @@ const Program = () => {
     setSelectedExerciseByProgram(prev => ({ ...prev, [programId]: value }))
   }
 
-  const getExerciseNameById = exerciseId => {
-    const selectedExercise = exercises.find(
-      exercise => String(exercise.id) === String(exerciseId)
-    )
-    return selectedExercise?.name ?? ""
-  }
 
   const addExerciseToProgram = programId => {
     const selectedExerciseId = selectedExerciseByProgram[programId] ?? ""
-    const exerciseName = getExerciseNameById(selectedExerciseId).trim()
-    if (!exerciseName) return
+    const exerciseObj = exercises.find(
+      ex => String(ex.id) === String(selectedExerciseId)
+    )
+    if (!exerciseObj) return
 
     setCustomSplit(prev => {
       if (!prev) return prev
@@ -176,7 +221,7 @@ const Program = () => {
           programItem.id === programId
             ? {
                 ...programItem,
-                exercises: [...programItem.exercises, exerciseName]
+                exercises: [...programItem.exercises, exerciseObj]
               }
             : programItem
         )
@@ -346,24 +391,48 @@ const Program = () => {
 
                       <div className="space-y-2 max-h-64 overflow-auto">
                         {programItem.exercises.length > 0 ? (
-                          programItem.exercises.map((exercise, index) => (
-                            <div
-                              key={`${exercise}-${index}`}
-                              className="flex items-center justify-between gap-3 px-3 py-2 rounded-lg bg-muted"
-                            >
-                              <span className="text-sm">{exercise}</span>
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  removeExerciseFromProgram(programItem.id, index)
-                                }
-                                className="text-muted-foreground hover:text-foreground"
-                                aria-label={`Remove ${exercise}`}
+                          programItem.exercises.map((exercise, index) => {
+                            const exObj =
+                              typeof exercise === "string"
+                                ? { name: exercise }
+                                : exercise
+                            return (
+                              <div
+                                key={`${exObj.name}-${index}`}
+                                className="flex items-center justify-between gap-3 px-3 py-2 rounded-lg bg-muted"
                               >
-                                <X className="w-4 h-4" />
-                              </button>
-                            </div>
-                          ))
+                                <div className="flex items-center gap-2">
+                                  {exObj.sample_image && (
+                                    <img
+                                      src={exObj.sample_image}
+                                      alt={exObj.name}
+                                      className="w-8 h-8 rounded"
+                                    />
+                                  )}
+                                  <span className="text-sm">{exObj.name}</span>
+                                </div>
+                                {exObj.video_url && (
+                                  <button
+                                    type="button"
+                                    onClick={() => setPlayingUrl(exObj.video_url)}
+                                    className="angrit-btn-secondary text-xs px-2 mr-2"
+                                  >
+                                    Watch
+                                  </button>
+                                )}
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    removeExerciseFromProgram(programItem.id, index)
+                                  }
+                                  className="text-muted-foreground hover:text-foreground"
+                                  aria-label={`Remove ${exObj.name}`}
+                                >
+                                  <X className="w-4 h-4" />
+                                </button>
+                              </div>
+                            )
+                          })
                         ) : (
                           <p className="text-sm text-muted-foreground">
                             No exercises added yet.
@@ -585,7 +654,7 @@ const Program = () => {
                                   key={exIndex}
                                   className="px-3 py-1 rounded-lg bg-muted text-sm"
                                 >
-                                  {exercise}
+                                  {typeof exercise === 'string' ? exercise : exercise.name}
                                 </span>
                               ))}
                             </div>
@@ -606,6 +675,33 @@ const Program = () => {
             </div>
           )}
         </section>
+
+        {/* video modal for program exercises */}
+        {playingUrl && (
+          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+            <div className="relative w-full max-w-3xl">
+              <button
+                onClick={() => setPlayingUrl("")}
+                className="absolute top-2 right-2 text-white p-1"
+              >
+                <X className="w-6 h-6" />
+              </button>
+              <div className="aspect-w-16 aspect-h-9">
+                <iframe
+                  src={
+                    playingUrl.includes("youtube")
+                      ? playingUrl.replace("watch?v=", "embed/")
+                      : playingUrl
+                  }
+                  title="Exercise demo"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  className="w-full h-full"
+                />
+              </div>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   )
