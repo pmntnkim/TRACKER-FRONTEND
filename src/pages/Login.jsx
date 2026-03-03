@@ -14,7 +14,7 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false)
 
   useEffect(() => {
-    if (userInfo) {
+    if (userInfo?.token) {
       navigate("/dashboard")
     }
   }, [userInfo, navigate])

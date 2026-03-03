@@ -26,6 +26,7 @@ const initialState = {
 export const authLoginReducer = (state = initialState, action) => {
   switch (action.type) {
     case USER_LOGIN_REQUEST:
+      return { loading: true, userInfo: null, error: null }
     case USER_REGISTER_REQUEST:
       return { ...state, loading: true, error: null }
     case USER_LOGIN_SUCCESS:

@@ -37,9 +37,16 @@ export const login = (identifier, password) => async (dispatch) => {
             { username: identifier, password },
             config
         );
-        dispatch({ type: USER_LOGIN_SUCCESS, payload: data });
-        localStorage.setItem("angrit_token", data.token);
+        const token = data?.token || data?.access;
+        if (!token) {
+            throw new Error("Authentication failed: token missing from response.");
+        }
+
+        const payload = { ...data, token };
+        dispatch({ type: USER_LOGIN_SUCCESS, payload });
+        localStorage.setItem("angrit_token", token);
     } catch (error) {
+        localStorage.removeItem("angrit_token");
         dispatch({
             type: USER_LOGIN_FAIL,
             payload: getErrorMessage(error),
