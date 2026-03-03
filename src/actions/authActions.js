@@ -91,7 +91,7 @@ export const forgotPassword = (email) => async (dispatch) => {
             },
         };
         const { data } = await axios.post(
-            'https://127.0.0.1:8000/api/users/forgot-password/',
+            'http://127.0.0.1:8000/api/users/forgot-password/',
             { email },
             config
         );
@@ -99,7 +99,7 @@ export const forgotPassword = (email) => async (dispatch) => {
     } catch (error) {
         dispatch({
             type: USER_FORGOT_PASSWORD_FAIL,
-            payload: error.response && error.response.data.message ? error.response.data.message : error.message,
+            payload: getErrorMessage(error),
         });
     }
 };
@@ -113,7 +113,7 @@ export const resetPassword = (token, password, confirmPassword) => async (dispat
             },
         };
         const { data } = await axios.post(
-            'https://127.0.0.1:8000/api/users/reset-password/',
+            'http://127.0.0.1:8000/api/users/reset-password/',
             { token, password, confirmPassword },
             config
         );
@@ -121,7 +121,7 @@ export const resetPassword = (token, password, confirmPassword) => async (dispat
     } catch (error) {
         dispatch({
             type: USER_RESET_PASSWORD_FAIL,
-            payload: error.response && error.response.data.message ? error.response.data.message : error.message,
+            payload: getErrorMessage(error),
         });
     }
 };
