@@ -18,10 +18,12 @@ import Navbar from "../components/Navbar"
 import { useDispatch, useSelector } from "react-redux"
 import { generateProgram, resetProgram } from "../actions/programActions"
 import { listExercises } from "../actions/exerciseActions"
+import axios from "axios"
 
 const Program = () => {
   const dispatch = useDispatch()
   const { loading: isGenerating, program } = useSelector(state => state.program)
+  const { userInfo } = useSelector(state => state.authLogin)
   const { loading: isExercisesLoading, exercises } = useSelector(
     state => state.exerciseList
   )
@@ -33,28 +35,74 @@ const Program = () => {
   const [customSplit, setCustomSplit] = useState(null)
   const [savedSplits, setSavedSplits] = useState([])
   const [selectedExerciseByProgram, setSelectedExerciseByProgram] = useState({})
+  const [isSplitsLoading, setIsSplitsLoading] = useState(false)
+  const [isSavingSplit, setIsSavingSplit] = useState(false)
+  const [isCancelingEdit, setIsCancelingEdit] = useState(false)
+  const [isEditingSplit, setIsEditingSplit] = useState(false)
+  const [splitError, setSplitError] = useState("")
+
+  const splitApiConfig = {
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${userInfo?.token}`
+    }
+  }
+
+  const getSplitPayload = split => ({
+    name: split.name,
+    programs: (split.programs ?? []).map((programItem, index) => ({
+      name: programItem.name,
+      order: index,
+      exercise_items: (programItem.exercises ?? []).map(
+        (exerciseName, exerciseIndex) => ({
+          exercise_name: exerciseName,
+          order: exerciseIndex
+        })
+      )
+    }))
+  })
+
+  const toEditableSplit = split => ({
+    ...split,
+    programs: (split.programs ?? []).map(programItem => ({
+      ...programItem,
+      exercises: programItem.exercises ?? []
+    }))
+  })
+
+  const loadSavedSplits = async () => {
+    if (!userInfo?.token) {
+      setSavedSplits([])
+      return
+    }
+
+    setIsSplitsLoading(true)
+    setSplitError("")
+    try {
+      const { data } = await axios.get(
+        "http://127.0.0.1:8000/api/splits/",
+        splitApiConfig
+      )
+      setSavedSplits(Array.isArray(data) ? data : [])
+    } catch (error) {
+      const message =
+        error.response?.data?.detail ||
+        error.response?.data?.message ||
+        error.message
+      setSplitError(message)
+      setSavedSplits([])
+    } finally {
+      setIsSplitsLoading(false)
+    }
+  }
 
   useEffect(() => {
     dispatch(listExercises())
   }, [dispatch])
 
   useEffect(() => {
-    const storedSplits = localStorage.getItem("workout_splits")
-    if (storedSplits) {
-      try {
-        const parsedSplits = JSON.parse(storedSplits)
-        if (Array.isArray(parsedSplits)) {
-          setSavedSplits(parsedSplits)
-        }
-      } catch (error) {
-        setSavedSplits([])
-      }
-    }
-  }, [])
-
-  useEffect(() => {
-    localStorage.setItem("workout_splits", JSON.stringify(savedSplits))
-  }, [savedSplits])
+    loadSavedSplits()
+  }, [userInfo?.token])
 
   const handleGenerate = () => {
     dispatch(resetProgram())
@@ -71,33 +119,63 @@ const Program = () => {
     if (!splitName) return
 
     setCustomSplit({
-      id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
       name: splitName,
       programs: []
     })
+    setIsEditingSplit(true)
     setSplitNameInput("")
+    setSplitError("")
   }
 
-  const saveCurrentSplit = () => {
+  const saveCurrentSplit = async () => {
     if (!customSplit) return
+    if (!userInfo?.token) {
+      setSplitError("Please log in first.")
+      return
+    }
 
-    setSavedSplits(prev => {
-      const existingIndex = prev.findIndex(split => split.id === customSplit.id)
+    setIsSavingSplit(true)
+    setSplitError("")
+    try {
+      const payload = getSplitPayload(customSplit)
+      const isExisting = Number.isInteger(customSplit.id)
 
-      if (existingIndex >= 0) {
-        return prev.map(split =>
-          split.id === customSplit.id
-            ? { ...customSplit, updatedAt: new Date().toISOString() }
-            : split
-        )
-      }
+      const response = isExisting
+        ? await axios.put(
+            `http://127.0.0.1:8000/api/splits/${customSplit.id}/`,
+            payload,
+            splitApiConfig
+          )
+        : await axios.post(
+            "http://127.0.0.1:8000/api/splits/",
+            payload,
+            splitApiConfig
+          )
 
-      return [...prev, { ...customSplit, updatedAt: new Date().toISOString() }]
-    })
+      const savedSplit = toEditableSplit(response.data)
+      setCustomSplit(savedSplit)
+      setIsEditingSplit(false)
+      setSavedSplits(prev => {
+        const existingIndex = prev.findIndex(split => split.id === savedSplit.id)
+        if (existingIndex >= 0) {
+          return prev.map(split => (split.id === savedSplit.id ? savedSplit : split))
+        }
+        return [savedSplit, ...prev]
+      })
+    } catch (error) {
+      const message =
+        error.response?.data?.detail ||
+        error.response?.data?.message ||
+        error.message
+      setSplitError(message)
+    } finally {
+      setIsSavingSplit(false)
+    }
   }
 
   const viewSavedSplit = split => {
-    setCustomSplit(split)
+    setCustomSplit(toEditableSplit(split))
+    setIsEditingSplit(false)
 
     const defaultExerciseMap = {}
     split.programs.forEach(programItem => {
@@ -106,32 +184,67 @@ const Program = () => {
     setSelectedExerciseByProgram(defaultExerciseMap)
   }
 
-  const renameSavedSplit = split => {
+  const renameSavedSplit = async split => {
+    if (!userInfo?.token) {
+      setSplitError("Please log in first.")
+      return
+    }
+
     const nextName = window.prompt("Rename split", split.name)
     if (!nextName) return
 
     const trimmedName = nextName.trim()
     if (!trimmedName) return
 
-    setSavedSplits(prev =>
-      prev.map(item =>
-        item.id === split.id
-          ? { ...item, name: trimmedName, updatedAt: new Date().toISOString() }
-          : item
+    setSplitError("")
+    try {
+      const payload = getSplitPayload({ ...split, name: trimmedName })
+      const { data } = await axios.put(
+        `http://127.0.0.1:8000/api/splits/${split.id}/`,
+        payload,
+        splitApiConfig
       )
-    )
+      const updatedSplit = toEditableSplit(data)
 
-    setCustomSplit(prev =>
-      prev && prev.id === split.id ? { ...prev, name: trimmedName } : prev
-    )
+      setSavedSplits(prev =>
+        prev.map(item => (item.id === split.id ? updatedSplit : item))
+      )
+      setCustomSplit(prev =>
+        prev && prev.id === split.id ? updatedSplit : prev
+      )
+    } catch (error) {
+      const message =
+        error.response?.data?.detail ||
+        error.response?.data?.message ||
+        error.message
+      setSplitError(message)
+    }
   }
 
-  const deleteSavedSplit = splitId => {
+  const deleteSavedSplit = async splitId => {
     const confirmed = window.confirm("Delete this split?")
     if (!confirmed) return
 
-    setSavedSplits(prev => prev.filter(split => split.id !== splitId))
-    setCustomSplit(prev => (prev && prev.id === splitId ? null : prev))
+    if (!userInfo?.token) {
+      setSplitError("Please log in first.")
+      return
+    }
+
+    setSplitError("")
+    try {
+      await axios.delete(
+        `http://127.0.0.1:8000/api/splits/${splitId}/`,
+        splitApiConfig
+      )
+      setSavedSplits(prev => prev.filter(split => split.id !== splitId))
+      setCustomSplit(prev => (prev && prev.id === splitId ? null : prev))
+    } catch (error) {
+      const message =
+        error.response?.data?.detail ||
+        error.response?.data?.message ||
+        error.message
+      setSplitError(message)
+    }
   }
 
   const addProgram = () => {
@@ -150,6 +263,51 @@ const Program = () => {
 
     setSelectedExerciseByProgram(prev => ({ ...prev, [programId]: "" }))
     setProgramNameInput("")
+  }
+
+  const enableSplitEditing = () => {
+    if (!customSplit) return
+    setIsEditingSplit(true)
+  }
+
+  const cancelSplitEditing = async () => {
+    if (!customSplit) return
+
+    if (!Number.isInteger(customSplit.id)) {
+      setCustomSplit(null)
+      setProgramNameInput("")
+      setIsEditingSplit(false)
+      return
+    }
+
+    if (!userInfo?.token) {
+      setSplitError("Please log in first.")
+      return
+    }
+
+    setIsCancelingEdit(true)
+    setSplitError("")
+    try {
+      const { data } = await axios.get(
+        `http://127.0.0.1:8000/api/splits/${customSplit.id}/`,
+        splitApiConfig
+      )
+      const latestSplit = toEditableSplit(data)
+      setCustomSplit(latestSplit)
+      setSavedSplits(prev =>
+        prev.map(split => (split.id === latestSplit.id ? latestSplit : split))
+      )
+      setProgramNameInput("")
+      setIsEditingSplit(false)
+    } catch (error) {
+      const message =
+        error.response?.data?.detail ||
+        error.response?.data?.message ||
+        error.message
+      setSplitError(message)
+    } finally {
+      setIsCancelingEdit(false)
+    }
   }
 
   const handleSelectedExerciseChange = (programId, value) => {
@@ -256,42 +414,68 @@ const Program = () => {
               <div className="rounded-xl border border-border p-4 bg-secondary/20">
                 <p className="text-sm text-muted-foreground mb-1">Current Split</p>
                 <h3 className="font-semibold text-lg">{customSplit.name}</h3>
-                <button
-                  type="button"
-                  onClick={saveCurrentSplit}
-                  className="angrit-btn-primary mt-4 inline-flex items-center gap-2"
-                >
-                  <Save className="w-4 h-4" />
-                  Save Split
-                </button>
-              </div>
-
-              <div className="rounded-xl border border-border p-4 bg-secondary/20">
-                <label className="block text-sm font-medium mb-2">Add Program</label>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={programNameInput}
-                    onChange={e => setProgramNameInput(e.target.value)}
-                    onKeyDown={e => {
-                      if (e.key === "Enter") {
-                        e.preventDefault()
-                        addProgram()
-                      }
-                    }}
-                    className="angrit-input w-full"
-                    placeholder="e.g. Push"
-                  />
-                  <button
-                    type="button"
-                    onClick={addProgram}
-                    className="angrit-btn-secondary px-3"
-                    aria-label="Add program"
-                  >
-                    <Plus className="w-4 h-4" />
-                  </button>
+                <div className="mt-4 flex items-center gap-2">
+                  {isEditingSplit ? (
+                    <>
+                      <button
+                        type="button"
+                        onClick={saveCurrentSplit}
+                        disabled={isSavingSplit || isCancelingEdit}
+                        className="angrit-btn-primary inline-flex items-center gap-2"
+                      >
+                        <Save className="w-4 h-4" />
+                        {isSavingSplit ? "Saving..." : "Save Split"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={cancelSplitEditing}
+                        disabled={isSavingSplit || isCancelingEdit}
+                        className="angrit-btn-secondary inline-flex items-center gap-2"
+                      >
+                        {isCancelingEdit ? "Canceling..." : "Cancel Edit"}
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={enableSplitEditing}
+                      className="angrit-btn-secondary inline-flex items-center gap-2"
+                    >
+                      <Pencil className="w-4 h-4" />
+                      Edit Split
+                    </button>
+                  )}
                 </div>
               </div>
+
+              {isEditingSplit && (
+                <div className="rounded-xl border border-border p-4 bg-secondary/20">
+                  <label className="block text-sm font-medium mb-2">Add Program</label>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={programNameInput}
+                      onChange={e => setProgramNameInput(e.target.value)}
+                      onKeyDown={e => {
+                        if (e.key === "Enter") {
+                          e.preventDefault()
+                          addProgram()
+                        }
+                      }}
+                      className="angrit-input w-full"
+                      placeholder="e.g. Push"
+                    />
+                    <button
+                      type="button"
+                      onClick={addProgram}
+                      className="angrit-btn-secondary px-3"
+                      aria-label="Add program"
+                    >
+                      <Plus className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              )}
 
               {customSplit.programs.length > 0 ? (
                 <div className="grid md:grid-cols-2 gap-5">
@@ -307,41 +491,45 @@ const Program = () => {
                         <h4 className="font-semibold text-lg">{programItem.name}</h4>
                       </div>
 
-                      <div className="flex gap-2 mb-4">
-                        <select
-                          value={selectedExerciseByProgram[programItem.id] ?? ""}
-                          onChange={e =>
-                            handleSelectedExerciseChange(programItem.id, e.target.value)
-                          }
-                          className="angrit-input w-full"
-                          disabled={isExercisesLoading}
-                        >
-                          <option value="">
-                            {isExercisesLoading
-                              ? "Loading exercises..."
-                              : "Select from exercise library"}
-                          </option>
-                          {exercises.map(exercise => (
-                            <option key={exercise.id} value={exercise.id}>
-                              {exercise.name}
-                            </option>
-                          ))}
-                        </select>
-                        <button
-                          type="button"
-                          onClick={() => addExerciseToProgram(programItem.id)}
-                          className="angrit-btn-secondary px-3"
-                          aria-label={`Add exercise to ${programItem.name}`}
-                          disabled={isExercisesLoading}
-                        >
-                          <Plus className="w-4 h-4" />
-                        </button>
-                      </div>
+                      {isEditingSplit && (
+                        <>
+                          <div className="flex gap-2 mb-4">
+                            <select
+                              value={selectedExerciseByProgram[programItem.id] ?? ""}
+                              onChange={e =>
+                                handleSelectedExerciseChange(programItem.id, e.target.value)
+                              }
+                              className="angrit-input w-full"
+                              disabled={isExercisesLoading}
+                            >
+                              <option value="">
+                                {isExercisesLoading
+                                  ? "Loading exercises..."
+                                  : "Select from exercise library"}
+                              </option>
+                              {exercises.map(exercise => (
+                                <option key={exercise.id} value={exercise.id}>
+                                  {exercise.name}
+                                </option>
+                              ))}
+                            </select>
+                            <button
+                              type="button"
+                              onClick={() => addExerciseToProgram(programItem.id)}
+                              className="angrit-btn-secondary px-3"
+                              aria-label={`Add exercise to ${programItem.name}`}
+                              disabled={isExercisesLoading}
+                            >
+                              <Plus className="w-4 h-4" />
+                            </button>
+                          </div>
 
-                      {!isExercisesLoading && exercises.length === 0 && (
-                        <p className="text-xs text-muted-foreground mb-3">
-                          No exercises found in your library.
-                        </p>
+                          {!isExercisesLoading && exercises.length === 0 && (
+                            <p className="text-xs text-muted-foreground mb-3">
+                              No exercises found in your library.
+                            </p>
+                          )}
+                        </>
                       )}
 
                       <div className="space-y-2 max-h-64 overflow-auto">
@@ -352,16 +540,18 @@ const Program = () => {
                               className="flex items-center justify-between gap-3 px-3 py-2 rounded-lg bg-muted"
                             >
                               <span className="text-sm">{exercise}</span>
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  removeExerciseFromProgram(programItem.id, index)
-                                }
-                                className="text-muted-foreground hover:text-foreground"
-                                aria-label={`Remove ${exercise}`}
-                              >
-                                <X className="w-4 h-4" />
-                              </button>
+                              {isEditingSplit && (
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    removeExerciseFromProgram(programItem.id, index)
+                                  }
+                                  className="text-muted-foreground hover:text-foreground"
+                                  aria-label={`Remove ${exercise}`}
+                                >
+                                  <X className="w-4 h-4" />
+                                </button>
+                              )}
                             </div>
                           ))
                         ) : (
@@ -387,6 +577,14 @@ const Program = () => {
           <p className="text-muted-foreground mb-6">
             View your saved splits and continue where you left off.
           </p>
+
+          {splitError && (
+            <p className="text-sm text-red-500 mb-4">{splitError}</p>
+          )}
+
+          {isSplitsLoading && (
+            <p className="text-sm text-muted-foreground mb-4">Loading splits...</p>
+          )}
 
           {savedSplits.length === 0 ? (
             <p className="text-sm text-muted-foreground">No saved splits yet.</p>
