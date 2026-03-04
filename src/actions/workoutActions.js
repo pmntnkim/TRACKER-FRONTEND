@@ -17,13 +17,18 @@ import axios from "axios"
 export const listWorkoutLogs = () => async (dispatch, getState) => {
   try {
     dispatch({ type: WORKOUT_LOG_LIST_REQUEST })
-    const { userLogin: { userInfo } } = getState()
+    const {
+      authLogin: { userInfo }
+    } = getState()
     const config = {
       headers: {
-        Authorization: `Bearer ${userInfo.token}`
+        Authorization: `Bearer ${userInfo?.token}`
       }
     }
-    const { data } = await axios.get('https://127.0.0.1:8000/api/workouts/logs/', config)
+    const { data } = await axios.get(
+      "http://127.0.0.1:8000/api/workouts/logs/",
+      config
+    )
     dispatch({ type: WORKOUT_LOG_LIST_SUCCESS, payload: data })
   } catch (error) {
     dispatch({
@@ -36,14 +41,20 @@ export const listWorkoutLogs = () => async (dispatch, getState) => {
 export const createWorkoutLog = (logData) => async (dispatch, getState) => {
     try {
         dispatch({ type: WORKOUT_LOG_CREATE_REQUEST })
-        const { userLogin: { userInfo } } = getState()
+        const {
+          authLogin: { userInfo }
+        } = getState()
         const config = {
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${userInfo.token}`,
+            Authorization: `Bearer ${userInfo?.token}`,
           },
         }
-        const { data } = await axios.post('https://127.0.0.1:8000/api/workouts/logs/', logData, config)
+        const { data } = await axios.post(
+          "http://127.0.0.1:8000/api/workouts/logs/",
+          logData,
+          config
+        )
         dispatch({ type: WORKOUT_LOG_CREATE_SUCCESS, payload: data })
     } catch (error) {
         dispatch({
@@ -56,14 +67,19 @@ export const createWorkoutLog = (logData) => async (dispatch, getState) => {
 export const deleteWorkoutLog = (id) => async (dispatch, getState) => {
     try {
         dispatch({ type: WORKOUT_LOG_DELETE_REQUEST })
-        const { userLogin: { userInfo } } = getState()
+        const {
+          authLogin: { userInfo }
+        } = getState()
         const config = {
           headers: {
-            Authorization: `Bearer ${userInfo.token}`,
+            Authorization: `Bearer ${userInfo?.token}`,
           },
         }
-        await axios.delete(`https://127.0.0.1:8000/api/workouts/logs/${id}/`, config)
-        dispatch({ type: WORKOUT_LOG_DELETE_SUCCESS })
+        await axios.delete(
+          `http://127.0.0.1:8000/api/workouts/logs/${id}/`,
+          config
+        )
+        dispatch({ type: WORKOUT_LOG_DELETE_SUCCESS, payload: id })
     } catch (error) {
         dispatch({
             type: WORKOUT_LOG_DELETE_FAIL,
@@ -75,13 +91,18 @@ export const deleteWorkoutLog = (id) => async (dispatch, getState) => {
 export const getDashboardStats = () => async (dispatch, getState) => {
     try {
         dispatch({ type: DASHBOARD_STATS_REQUEST })
-        const { userLogin: { userInfo } } = getState()
+        const {
+          authLogin: { userInfo }
+        } = getState()
         const config = {
           headers: {
-            Authorization: `Bearer ${userInfo.token}`,
+            Authorization: `Bearer ${userInfo?.token}`,
           },
         }
-        const { data } = await axios.get('https://127.0.0.1:8000/api/workouts/dashboard-stats/', config)
+        const { data } = await axios.get(
+          "http://127.0.0.1:8000/api/workouts/dashboard-stats/",
+          config
+        )
         dispatch({ type: DASHBOARD_STATS_SUCCESS, payload: data })
     } catch (error) {
         dispatch({

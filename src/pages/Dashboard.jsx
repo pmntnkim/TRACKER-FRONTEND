@@ -8,6 +8,7 @@ import {
   TrendingUp, 
   Calendar, 
   ChevronRight,
+  Clock,
   Dumbbell,
   Target
 } from "lucide-react"
@@ -15,16 +16,58 @@ import Navbar from "../components/Navbar";
 import { useDispatch, useSelector } from "react-redux"
 import { getDashboardStats } from "../actions/workoutActions"
 
+const ACTIVE_WORKOUT_STORAGE_KEY = "activeWorkoutSession"
+
 const Dashboard = () => {
   const dispatch = useDispatch()
   const { loading: isLoading, stats } = useSelector(
     state => state.dashboardStats
   )
   const { workouts: recentWorkouts } = useSelector(state => state.workoutLog)
+  const [activeSession, setActiveSession] = useState(null)
+  const [, setClockTick] = useState(0)
 
   useEffect(() => {
     dispatch(getDashboardStats())
   }, [dispatch])
+
+  useEffect(() => {
+    const readActiveSession = () => {
+      const rawSession = localStorage.getItem(ACTIVE_WORKOUT_STORAGE_KEY)
+      if (!rawSession) {
+        setActiveSession(null)
+        return
+      }
+
+      try {
+        const parsedSession = JSON.parse(rawSession)
+        if (parsedSession?.startedAt && Array.isArray(parsedSession?.exercises)) {
+          setActiveSession(parsedSession)
+          return
+        }
+      } catch (error) {
+        localStorage.removeItem(ACTIVE_WORKOUT_STORAGE_KEY)
+      }
+
+      setActiveSession(null)
+    }
+
+    readActiveSession()
+    const timer = window.setInterval(() => {
+      readActiveSession()
+      setClockTick(prev => prev + 1)
+    }, 10000)
+
+    return () => window.clearInterval(timer)
+  }, [])
+
+  const formatElapsed = startedAt => {
+    const seconds = Math.max(0, Math.floor((Date.now() - startedAt) / 1000))
+    const hours = String(Math.floor(seconds / 3600)).padStart(2, "0")
+    const minutes = String(Math.floor((seconds % 3600) / 60)).padStart(2, "0")
+    const remainingSeconds = String(seconds % 60).padStart(2, "0")
+    return `${hours}:${minutes}:${remainingSeconds}`
+  }
 
   const statCards = [
     {
@@ -188,6 +231,45 @@ const Dashboard = () => {
 
           {/* Sidebar */}
           <div className="space-y-6">
+            {/* Active Session */}
+            <div
+              className="angrit-card animate-slide-up"
+              style={{ animationDelay: "260ms" }}
+            >
+              <div className="flex items-center gap-2 mb-4">
+                <Clock className="w-5 h-5 text-primary" />
+                <h3 className="font-display text-lg font-bold">Active Session</h3>
+              </div>
+
+              {!activeSession ? (
+                <p className="text-sm text-muted-foreground">
+                  No workout in progress.
+                </p>
+              ) : (
+                <>
+                  <div className="p-3 rounded-lg bg-secondary/50 space-y-2 mb-3">
+                    <p className="font-semibold text-sm">
+                      {activeSession.programName || "Workout Session"}
+                    </p>
+                    {activeSession.splitName && (
+                      <p className="text-xs text-muted-foreground">
+                        Split: {activeSession.splitName}
+                      </p>
+                    )}
+                    <p className="text-xs text-muted-foreground">
+                      {activeSession.exercises.length} exercises • {formatElapsed(activeSession.startedAt)} elapsed
+                    </p>
+                  </div>
+                  <Link
+                    to="/workout-log"
+                    className="angrit-btn-primary w-full flex items-center justify-center gap-2"
+                  >
+                    Resume Workout <ChevronRight className="w-4 h-4" />
+                  </Link>
+                </>
+              )}
+            </div>
+
             {/* Upcoming */}
             <div
               className="angrit-card animate-slide-up"
