@@ -37,12 +37,14 @@ const WorkoutLog = () => {
   const [savedSplits, setSavedSplits] = useState([])
   const [isSplitsLoading, setIsSplitsLoading] = useState(false)
   const [splitError, setSplitError] = useState("")
+  const [showProgramSelector, setShowProgramSelector] = useState(false)
   const [selectedSplitId, setSelectedSplitId] = useState("")
   const [selectedProgramId, setSelectedProgramId] = useState("")
 
   const [activeWorkout, setActiveWorkout] = useState(null)
   const [exercisePicker, setExercisePicker] = useState("")
   const [finishMessage, setFinishMessage] = useState("")
+  const [exerciseAddedDialog, setExerciseAddedDialog] = useState("")
   const [, setTimerTick] = useState(0)
 
   useEffect(() => {
@@ -82,6 +84,16 @@ const WorkoutLog = () => {
 
     return () => window.clearInterval(timer)
   }, [activeWorkout])
+
+  useEffect(() => {
+    if (!exerciseAddedDialog) return undefined
+
+    const timer = window.setTimeout(() => {
+      setExerciseAddedDialog("")
+    }, 1800)
+
+    return () => window.clearTimeout(timer)
+  }, [exerciseAddedDialog])
 
   useEffect(() => {
     const loadSavedSplits = async () => {
@@ -169,11 +181,20 @@ const WorkoutLog = () => {
       programName: selectedProgram.name,
       exercises: programExercises
     })
+
+    if (programExercises.length > 0) {
+      setExerciseAddedDialog(
+        `${programExercises.length} exercise${
+          programExercises.length > 1 ? "s" : ""
+        } added from ${selectedProgram.name}.`
+      )
+    }
   }
 
   const startEmptyWorkout = () => {
     setFinishMessage("")
     setExercisePicker("")
+    setShowProgramSelector(false)
     setActiveWorkout({
       startedAt: Date.now(),
       splitName: "",
@@ -208,6 +229,7 @@ const WorkoutLog = () => {
       }
     })
     setExercisePicker("")
+    setExerciseAddedDialog(`${pickedName} added to this workout.`)
   }
 
   const removeExerciseFromWorkout = exerciseId => {
@@ -302,17 +324,23 @@ const WorkoutLog = () => {
       return
     }
 
-    await Promise.all(payloads.map(payload => dispatch(createWorkoutLog(payload))))
-    dispatch(listWorkoutLogs())
+    try {
+      await Promise.all(payloads.map(payload => dispatch(createWorkoutLog(payload))))
+      dispatch(listWorkoutLogs())
 
-    setActiveWorkout(null)
-    setSelectedSplitId("")
-    setSelectedProgramId("")
-    setFinishMessage("Workout finished and saved.")
+      setActiveWorkout(null)
+      setShowProgramSelector(false)
+      setSelectedSplitId("")
+      setSelectedProgramId("")
+      setFinishMessage("Workout finished and saved.")
+    } catch (error) {
+      setFinishMessage(error.message || "Failed to save workout. Please try again.")
+    }
   }
 
   const cancelWorkout = () => {
     setActiveWorkout(null)
+    setShowProgramSelector(false)
     setExercisePicker("")
     setFinishMessage("")
   }
@@ -348,6 +376,14 @@ const WorkoutLog = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      {exerciseAddedDialog && (
+        <div className="fixed top-24 right-4 z-50 w-[min(90vw,320px)] animate-fade-in">
+          <div className="angrit-card py-3 px-4">
+            <p className="text-sm font-medium">{exerciseAddedDialog}</p>
+          </div>
+        </div>
+      )}
+
       <Navbar />
 
       <main className="pt-24 pb-12 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
@@ -371,28 +407,40 @@ const WorkoutLog = () => {
                       Start Workout
                     </h2>
                     <p className="text-sm text-muted-foreground">
-                      Pick a split/program or begin an empty session.
+                      Start guided with split/program, or begin an empty session.
                     </p>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const firstSplit = savedSplits[0]
-                      if (firstSplit) {
-                        setSelectedSplitId(String(firstSplit.id))
-                        const firstProgram = firstSplit.programs?.[0]
-                        setSelectedProgramId(firstProgram ? String(firstProgram.id) : "")
-                      }
-                    }}
-                    className="angrit-btn-primary flex items-center justify-center gap-2"
-                  >
-                    <Play className="w-5 h-5" />
-                    Start Workout
-                  </button>
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowProgramSelector(true)
+                        const firstSplit = savedSplits[0]
+                        if (firstSplit) {
+                          setSelectedSplitId(String(firstSplit.id))
+                          const firstProgram = firstSplit.programs?.[0]
+                          setSelectedProgramId(firstProgram ? String(firstProgram.id) : "")
+                        }
+                      }}
+                      className="angrit-btn-primary flex items-center justify-center gap-2"
+                    >
+                      <Play className="w-5 h-5" />
+                      Start Workout
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={startEmptyWorkout}
+                      className="angrit-btn-secondary flex items-center justify-center gap-2"
+                    >
+                      <Plus className="w-5 h-5" />
+                      Start Empty Workout
+                    </button>
+                  </div>
                 </div>
               </div>
 
-              <div className="angrit-card">
+              {showProgramSelector && <div className="angrit-card">
                 <h3 className="font-semibold mb-4">Choose Split and Program</h3>
 
                 {isSplitsLoading ? (
@@ -476,21 +524,12 @@ const WorkoutLog = () => {
                     <Dumbbell className="w-5 h-5" />
                     Start {selectedProgram?.name || "Program"}
                   </button>
-
-                  <button
-                    type="button"
-                    onClick={startEmptyWorkout}
-                    className="angrit-btn-secondary flex items-center justify-center gap-2"
-                  >
-                    <Plus className="w-5 h-5" />
-                    Start Empty Workout
-                  </button>
                 </div>
 
                 {splitError && (
                   <p className="mt-3 text-sm text-destructive">{splitError}</p>
                 )}
-              </div>
+              </div>}
             </>
           ) : (
             <div className="space-y-4">

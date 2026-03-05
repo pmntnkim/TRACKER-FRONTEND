@@ -56,11 +56,17 @@ export const createWorkoutLog = (logData) => async (dispatch, getState) => {
           config
         )
         dispatch({ type: WORKOUT_LOG_CREATE_SUCCESS, payload: data })
+        return data
     } catch (error) {
+        const message =
+          error.response && error.response.data.message
+          ? error.response.data.message
+          : error.response?.data?.detail || error.message
         dispatch({
             type: WORKOUT_LOG_CREATE_FAIL,
-            payload: error.response && error.response.data.message ? error.response.data.message : error.message,
+          payload: message,
         })
+        throw new Error(message)
     }
 }
 

@@ -6,16 +6,21 @@ import {
 } from '../constants/programConstants';
 import axios from 'axios';
 
-export const generateProgram = (requirements) => async (dispatch) => {
+export const generateProgram = (requirements) => async (dispatch, getState) => {
     try {
         dispatch({ type: PROGRAM_GENERATE_REQUEST });
+        const {
+            authLogin: { userInfo },
+        } = getState();
+
         const config = {
             headers: {
                 'Content-Type': 'application/json',
+                Authorization: `Bearer ${userInfo?.token}`,
             },
         };
         const { data } = await axios.post(
-            'https://127.0.0.1:8000/api/programs/generate/',
+            'http://127.0.0.1:8000/api/programs/generate/',
             { requirements },
             config
         );
@@ -23,7 +28,10 @@ export const generateProgram = (requirements) => async (dispatch) => {
     } catch (error) {
         dispatch({
             type: PROGRAM_GENERATE_FAIL,
-            payload: error.response && error.response.data.message ? error.response.data.message : error.message,
+            payload:
+                error.response?.data?.detail ||
+                error.response?.data?.message ||
+                error.message,
         });
     }
 };
