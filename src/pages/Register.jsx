@@ -20,8 +20,8 @@ const Register = () => {
   const [showPassword, setShowPassword] = useState(false)
 
   useEffect(() => {
-    if (userInfo) {
-      navigate("/profile")
+    if (userInfo?.token) {
+      navigate("/complete-profile")
     }
   }, [userInfo, navigate])
 

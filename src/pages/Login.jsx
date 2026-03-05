@@ -15,7 +15,7 @@ const Login = () => {
 
   useEffect(() => {
     if (userInfo?.token) {
-      navigate("/dashboard")
+      navigate(userInfo.needs_profile ? "/complete-profile" : "/dashboard")
     }
   }, [userInfo, navigate])
 

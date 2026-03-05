@@ -6,6 +6,7 @@ import {
     USER_PROFILE_UPDATE_SUCCESS,
     USER_PROFILE_UPDATE_FAIL,
 } from "../constants/userConstants";
+import { markProfileCompleted } from "./authActions";
 import axios from "axios";
 
 const getErrorMessage = (error) => {
@@ -58,6 +59,7 @@ export const updateUserProfile = (user) => async (dispatch, getState) => {
             config
         );
         dispatch({ type: USER_PROFILE_UPDATE_SUCCESS, payload: data });
+        dispatch(markProfileCompleted());
     } catch (error) {
         dispatch({
             type: USER_PROFILE_UPDATE_FAIL,

@@ -6,6 +6,7 @@ import {
   USER_REGISTER_REQUEST,
   USER_REGISTER_SUCCESS,
   USER_REGISTER_FAIL,
+  USER_PROFILE_COMPLETED,
   USER_FORGOT_PASSWORD_REQUEST,
   USER_FORGOT_PASSWORD_SUCCESS,
   USER_FORGOT_PASSWORD_FAIL,
@@ -15,11 +16,21 @@ import {
   USER_RESET_PASSWORD_FAIL,
 } from "../constants/authConstants"
 
+const storedUserInfo = (() => {
+  try {
+    const raw = localStorage.getItem("angrit_user_info")
+    if (raw) return JSON.parse(raw)
+  } catch (error) {
+    localStorage.removeItem("angrit_user_info")
+  }
+
+  const token = localStorage.getItem("angrit_token")
+  return token ? { token } : null
+})()
+
 const initialState = {
   loading: false,
-  userInfo: localStorage.getItem("angrit_token")
-    ? { token: localStorage.getItem("angrit_token") }
-    : null,
+  userInfo: storedUserInfo,
   error: null
 }
 
@@ -37,6 +48,16 @@ export const authLoginReducer = (state = initialState, action) => {
       return { loading: false, userInfo: null, error: action.payload }
     case USER_LOGOUT:
       return { loading: false, userInfo: null, error: null }
+    case USER_PROFILE_COMPLETED:
+      return {
+        ...state,
+        userInfo: state.userInfo
+          ? {
+              ...state.userInfo,
+              needs_profile: false
+            }
+          : state.userInfo
+      }
     default:
       return state
   }

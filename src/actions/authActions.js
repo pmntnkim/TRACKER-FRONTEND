@@ -6,6 +6,7 @@ import {
     USER_REGISTER_REQUEST,
     USER_REGISTER_SUCCESS,
     USER_REGISTER_FAIL,
+    USER_PROFILE_COMPLETED,
     USER_FORGOT_PASSWORD_REQUEST,
     USER_FORGOT_PASSWORD_SUCCESS,
     USER_FORGOT_PASSWORD_FAIL,
@@ -45,8 +46,10 @@ export const login = (identifier, password) => async (dispatch) => {
         const payload = { ...data, token };
         dispatch({ type: USER_LOGIN_SUCCESS, payload });
         localStorage.setItem("angrit_token", token);
+        localStorage.setItem("angrit_user_info", JSON.stringify(payload));
     } catch (error) {
         localStorage.removeItem("angrit_token");
+        localStorage.removeItem("angrit_user_info");
         dispatch({
             type: USER_LOGIN_FAIL,
             payload: getErrorMessage(error),
@@ -67,8 +70,14 @@ export const register = (username, email, password) => async (dispatch) => {
             { username, email, password },
             config
         );
-        dispatch({ type: USER_REGISTER_SUCCESS, payload: data });
-        localStorage.setItem("angrit_token", data.token);
+        const payload = {
+            ...data,
+            token: data?.token || data?.access,
+            needs_profile: true,
+        };
+        dispatch({ type: USER_REGISTER_SUCCESS, payload });
+        localStorage.setItem("angrit_token", payload.token);
+        localStorage.setItem("angrit_user_info", JSON.stringify(payload));
     } catch (error) {
         dispatch({
             type: USER_REGISTER_FAIL,
@@ -79,7 +88,19 @@ export const register = (username, email, password) => async (dispatch) => {
 
 export const logout = () => async (dispatch) => {
     localStorage.removeItem("angrit_token");
+    localStorage.removeItem("angrit_user_info");
     dispatch({ type: USER_LOGOUT });
+};
+
+export const markProfileCompleted = () => (dispatch, getState) => {
+    dispatch({ type: USER_PROFILE_COMPLETED });
+    const {
+        authLogin: { userInfo },
+    } = getState();
+    if (userInfo) {
+        localStorage.setItem("angrit_user_info", JSON.stringify(userInfo));
+        localStorage.setItem("angrit_token", userInfo.token);
+    }
 };
 
 export const forgotPassword = (email) => async (dispatch) => {

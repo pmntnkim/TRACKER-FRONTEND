@@ -13,6 +13,7 @@ import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import Dashboard from "./pages/Dashboard";
 import Profile from "./pages/Profile";
+import CompleteProfile from "./pages/CompleteProfile";
 import Exercises from "./pages/Exercises";
 import WorkoutLog from "./pages/WorkoutLog";
 import Program from "./pages/Program";
@@ -39,6 +40,7 @@ const App = () => {
 
               {/* Protected Routes */}
               <Route element={<ProtectedRoute />}>
+                <Route path="/complete-profile" element={<CompleteProfile />} />
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/exercises" element={<Exercises />} />
