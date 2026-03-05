@@ -8,7 +8,18 @@ import {
 const initialState = {
   loading: false,
   program: [],
+  generatedSplit: null,
   error: null
+}
+
+const getWeeksFromPayload = payload => {
+  if (Array.isArray(payload)) {
+    return payload
+  }
+  if (Array.isArray(payload?.weeks)) {
+    return payload.weeks
+  }
+  return []
 }
 
 export const programReducer = (state = initialState, action) => {
@@ -16,9 +27,14 @@ export const programReducer = (state = initialState, action) => {
     case PROGRAM_GENERATE_REQUEST:
       return { ...state, loading: true, error: null }
     case PROGRAM_GENERATE_SUCCESS:
-      return { loading: false, program: action.payload, error: null }
+      return {
+        loading: false,
+        program: getWeeksFromPayload(action.payload),
+        generatedSplit: action.payload?.split ?? null,
+        error: null
+      }
     case PROGRAM_GENERATE_FAIL:
-      return { loading: false, program: [], error: action.payload }
+      return { loading: false, program: [], generatedSplit: null, error: action.payload }
     case PROGRAM_RESET:
       return initialState
     default:

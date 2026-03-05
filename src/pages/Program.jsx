@@ -22,7 +22,12 @@ import axios from "axios"
 
 const Program = () => {
   const dispatch = useDispatch()
-  const { loading: isGenerating, program } = useSelector(state => state.program)
+  const {
+    loading: isGenerating,
+    program,
+    error: programError,
+    generatedSplit
+  } = useSelector(state => state.program)
   const { userInfo } = useSelector(state => state.authLogin)
   const { loading: isExercisesLoading, exercises } = useSelector(
     state => state.exerciseList
@@ -103,6 +108,12 @@ const Program = () => {
   useEffect(() => {
     loadSavedSplits()
   }, [userInfo?.token])
+
+  useEffect(() => {
+    if (generatedSplit?.id) {
+      loadSavedSplits()
+    }
+  }, [generatedSplit?.id])
 
   const handleGenerate = () => {
     dispatch(resetProgram())
@@ -643,6 +654,16 @@ const Program = () => {
               Get a personalized 12-week program powered by AI.
             </p>
           </div>
+
+          {programError && (
+            <p className="text-sm text-red-500">{programError}</p>
+          )}
+
+          {generatedSplit?.id && (
+            <p className="text-sm text-primary">
+              Program created and saved as split: {generatedSplit.name}
+            </p>
+          )}
 
           {program.length === 0 && (
             <div className="angrit-card text-center py-12 animate-slide-up">
