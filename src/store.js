@@ -13,6 +13,7 @@ import {
   workoutLogReducer,
   dashboardStatsReducer
 } from "./reducers/workoutReducers"
+import { progressAnalyticsReducer } from "./reducers/progressReducers"
 
 // combine reducers
 const rootReducer = combineReducers({
@@ -25,7 +26,8 @@ const rootReducer = combineReducers({
   exerciseList: exerciseListReducer,
   exerciseDetails: exerciseDetailsReducer,
   workoutLog: workoutLogReducer,
-  dashboardStats: dashboardStatsReducer
+  dashboardStats: dashboardStatsReducer,
+  progress: progressAnalyticsReducer
 })
 
 // create the store

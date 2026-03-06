@@ -97,10 +97,50 @@ const Dashboard = () => {
     }
   ]
 
-  const upcomingWorkouts = [
-    { name: "Push Day", day: "Tomorrow", time: "6:00 AM" },
-    { name: "Pull Day", day: "Wednesday", time: "6:00 AM" }
-  ]
+const { program } = useSelector((state) => state.program);
+
+const upcomingWorkouts = (() => {
+  if (!program || !Array.isArray(program) || program.length === 0) return [];
+
+  const today = new Date();
+  const dayNames = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+  const todayDay = today.getDay();
+
+  const upcoming = [];
+
+  for (const week of program) {
+    const days = week.days || week.workouts || [];
+    if (!Array.isArray(days)) continue;
+
+    for (const dayEntry of days) {
+      const dayName = dayEntry.day || dayEntry.name || "";
+      const dayIndex = dayNames.findIndex(
+        d => d.toLowerCase() === dayName.toLowerCase()
+      );
+
+      if (dayIndex < 0) continue;
+
+      let daysUntil = dayIndex - todayDay;
+      if (daysUntil <= 0) daysUntil += 7;
+
+      const label = daysUntil === 1 ? "Tomorrow" : dayNames[dayIndex];
+      const workoutName = dayEntry.workout || dayEntry.split || dayName;
+
+      upcoming.push({
+        name: workoutName,
+        day: label,
+        time: dayEntry.time || "—"
+      });
+    }
+  }
+
+  return upcoming
+    .sort((a, b) => {
+      const order = ["Tomorrow","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+      return order.indexOf(a.day) - order.indexOf(b.day);
+    })
+    .slice(0, 3);
+})();
 
   const formatDate = dateStr => {
     const date = new Date(dateStr)
@@ -242,7 +282,7 @@ const Dashboard = () => {
               </div>
 
               {!activeSession ? (
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-muted-foreground text-center py-3">
                   No workout in progress.
                 </p>
               ) : (
@@ -280,22 +320,26 @@ const Dashboard = () => {
                 <h3 className="font-display text-lg font-bold">Upcoming</h3>
               </div>
               <div className="space-y-3">
-                {upcomingWorkouts.map((workout, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center justify-between p-3 rounded-lg bg-secondary/50"
-                  >
-                    <div>
-                      <p className="font-medium text-sm">{workout.name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {workout.day}
-                      </p>
-                    </div>
-                    <span className="text-xs text-muted-foreground">
-                      {workout.time}
-                    </span>
-                  </div>
-                ))}
+                {
+                  upcomingWorkouts.length === 0 ? (
+                    <p className="text-sm text-muted-foreground text-center py-3">
+                      No upcoming exercises.
+                    </p>
+                  ) : (
+                    upcomingWorkouts.map((workout, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center justify-between p-3 rounded-lg bg-secondary/50"
+                      >
+                        <div>
+                          <p className="font-medium text-sm">{workout.name}</p>
+                          <p className="text-xs text-muted-foreground">{workout.day}</p>
+                        </div>
+                        <span className="text-xs text-muted-foreground">{workout.time}</span>
+                      </div>
+                    ))
+                  )
+                }
               </div>
             </div>
 

@@ -16,6 +16,7 @@ const Navbar = () => {
   const navLinks = [
     { path: "/dashboard", label: "Dashboard" },
     { path: "/program", label: "Program" },
+    { path: "/progress-analytics", label: "Progress Analytics" },
     { path: "/exercises", label: "Exercises" },
     { path: "/workout-log", label: "Workout Log" },
     { path: "/chat-coach", label: "Chat Coach" }
