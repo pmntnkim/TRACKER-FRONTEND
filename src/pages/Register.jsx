@@ -3,14 +3,14 @@ import { useState, useEffect } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { Eye, EyeOff, Dumbbell, Loader2, Check } from "lucide-react"
 import { useDispatch, useSelector } from "react-redux"
-import { register } from "../actions/authActions"
+import { register, resetRegisterState } from "../actions/authActions"
 import TermsOfServiceDialog from "../components/TermsOfServiceDialog"
 import PrivacyPolicyDialog from "../components/PrivacyPolicyDialog"
 
 const Register = () => {
   const navigate = useNavigate()
   const dispatch = useDispatch()
-  const { loading, userInfo, error } = useSelector(state => state.authLogin)
+  const { loading, userInfo, error, registerSuccess, registerMessage } = useSelector(state => state.authLogin)
 
   const [formData, setFormData] = useState({
     username: "",
@@ -24,6 +24,12 @@ const Register = () => {
       navigate("/complete-profile")
     }
   }, [userInfo, navigate])
+
+  useEffect(() => {
+    return () => {
+      dispatch(resetRegisterState())
+    }
+  }, [dispatch])
 
   const handleChange = e => {
     const { name, value } = e.target
@@ -61,6 +67,23 @@ const Register = () => {
 
         {/* Register Form */}
         <div className="angrit-card-elevated">
+          {registerSuccess ? (
+            <div className="space-y-5 text-center">
+              <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto">
+                <Check className="w-8 h-8 text-green-600" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold mb-2">Verify your email</h2>
+                <p className="text-muted-foreground">{registerMessage}</p>
+              </div>
+              <Link
+                to="/login"
+                className="angrit-btn-primary w-full inline-flex items-center justify-center"
+              >
+                Go to Login
+              </Link>
+            </div>
+          ) : (
           <form onSubmit={handleSubmit} className="space-y-5">
             {error && (
               <div className="p-4 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-sm">
@@ -190,6 +213,7 @@ const Register = () => {
               )}
             </button>
           </form>
+          )}
 
           <div className="mt-6 pt-6 border-t border-border text-center">
             <p className="text-muted-foreground text-sm">

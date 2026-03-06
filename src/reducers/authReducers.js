@@ -6,6 +6,7 @@ import {
   USER_REGISTER_REQUEST,
   USER_REGISTER_SUCCESS,
   USER_REGISTER_FAIL,
+  USER_REGISTER_RESET,
   USER_PROFILE_COMPLETED,
   USER_FORGOT_PASSWORD_REQUEST,
   USER_FORGOT_PASSWORD_SUCCESS,
@@ -31,23 +32,48 @@ const storedUserInfo = (() => {
 const initialState = {
   loading: false,
   userInfo: storedUserInfo,
+  registerSuccess: false,
+  registerMessage: "",
   error: null
 }
 
 export const authLoginReducer = (state = initialState, action) => {
   switch (action.type) {
     case USER_LOGIN_REQUEST:
-      return { loading: true, userInfo: null, error: null }
-    case USER_REGISTER_REQUEST:
       return { ...state, loading: true, error: null }
+    case USER_REGISTER_REQUEST:
+      return { ...state, loading: true, error: null, registerSuccess: false, registerMessage: "" }
     case USER_LOGIN_SUCCESS:
+      return { ...state, loading: false, userInfo: action.payload, error: null }
     case USER_REGISTER_SUCCESS:
-      return { loading: false, userInfo: action.payload, error: null }
+      return {
+        ...state,
+        loading: false,
+        userInfo: null,
+        registerSuccess: true,
+        registerMessage: action.payload?.message || "Account created. Please verify your email.",
+        error: null
+      }
     case USER_LOGIN_FAIL:
+      return { ...state, loading: false, userInfo: null, error: action.payload }
     case USER_REGISTER_FAIL:
-      return { loading: false, userInfo: null, error: action.payload }
+      return {
+        ...state,
+        loading: false,
+        userInfo: null,
+        registerSuccess: false,
+        registerMessage: "",
+        error: action.payload
+      }
+    case USER_REGISTER_RESET:
+      return {
+        ...state,
+        registerSuccess: false,
+        registerMessage: "",
+        error: null,
+      }
     case USER_LOGOUT:
-      return { loading: false, userInfo: null, error: null }
+      return { ...state, loading: false, userInfo: null, error: null }
     case USER_PROFILE_COMPLETED:
       return {
         ...state,

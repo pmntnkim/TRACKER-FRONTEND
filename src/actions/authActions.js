@@ -6,6 +6,7 @@ import {
     USER_REGISTER_REQUEST,
     USER_REGISTER_SUCCESS,
     USER_REGISTER_FAIL,
+    USER_REGISTER_RESET,
     USER_PROFILE_COMPLETED,
     USER_FORGOT_PASSWORD_REQUEST,
     USER_FORGOT_PASSWORD_SUCCESS,
@@ -70,20 +71,19 @@ export const register = (username, email, password) => async (dispatch) => {
             { username, email, password },
             config
         );
-        const payload = {
-            ...data,
-            token: data?.token || data?.access,
-            needs_profile: true,
-        };
-        dispatch({ type: USER_REGISTER_SUCCESS, payload });
-        localStorage.setItem("angrit_token", payload.token);
-        localStorage.setItem("angrit_user_info", JSON.stringify(payload));
+        localStorage.removeItem("angrit_token");
+        localStorage.removeItem("angrit_user_info");
+        dispatch({ type: USER_REGISTER_SUCCESS, payload: data });
     } catch (error) {
         dispatch({
             type: USER_REGISTER_FAIL,
             payload: getErrorMessage(error),
         });
     }
+};
+
+export const resetRegisterState = () => (dispatch) => {
+    dispatch({ type: USER_REGISTER_RESET });
 };
 
 export const logout = () => async (dispatch) => {
