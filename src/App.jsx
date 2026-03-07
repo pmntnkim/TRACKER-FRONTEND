@@ -12,6 +12,7 @@ import Register from "./pages/Register";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import VerifyEmail from "./pages/VerifyEmail";
+import PremiumSuccess from "./pages/PremiumSuccess";
 import Dashboard from "./pages/Dashboard";
 import Profile from "./pages/Profile";
 import CompleteProfile from "./pages/CompleteProfile";
@@ -39,6 +40,7 @@ const App = () => {
               <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/verify-email" element={<VerifyEmail />} />
+              <Route path="/premium-success" element={<PremiumSuccess />} />
 
               {/* Protected Routes */}
               <Route element={<ProtectedRoute />}>

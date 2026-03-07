@@ -2,52 +2,64 @@ import React from "react"
 import { useState, useEffect } from "react"
 import { Search, Filter, Lock, Dumbbell, ChevronDown } from "lucide-react"
 import Navbar from "../components/Navbar"
+import PremiumDialog from "../components/PremiumDialog"
 import { useDispatch, useSelector } from "react-redux"
 import { listExercises } from "../actions/exerciseActions"
+import { getUserProfile } from "../actions/userActions"
 
 const Exercises = () => {
   const dispatch = useDispatch()
   const { loading: isLoading, exercises } = useSelector(
     state => state.exerciseList
   )
+  const { profile } = useSelector(state => state.userProfile)
 
   const [searchQuery, setSearchQuery] = useState("")
-  const [selectedCategory, setSelectedCategory] = useState("All")
+  const [selectedCategory, setSelectedCategory] = useState("ALL")
   const [showFilters, setShowFilters] = useState(false)
+  const [showPremiumDialog, setShowPremiumDialog] = useState(false)
 
   const categories = [
-    "All",
-    "Chest",
-    "Back",
-    "Shoulders",
-    "Arms",
-    "Legs",
-    "Core",
-    "Cardio"
+    { label: "All", value: "ALL" },
+    { label: "Chest", value: "CHEST" },
+    { label: "Back", value: "BACK" },
+    { label: "Shoulders", value: "SHOULDERS" },
+    { label: "Arms", value: "ARMS" },
+    { label: "Legs", value: "LEGS" },
+    { label: "Core", value: "CORE" },
+    { label: "Cardio", value: "CARDIO" }
   ]
 
   const difficultyColors = {
-    Beginner: "bg-success/10 text-success",
-    Intermediate: "bg-warning/10 text-warning",
-    Advanced: "bg-primary/10 text-primary"
+    BEGINNER: "bg-success/10 text-success",
+    INTERMEDIATE: "bg-warning/10 text-warning",
+    ADVANCED: "bg-primary/10 text-primary"
   }
 
   useEffect(() => {
     dispatch(listExercises())
+    dispatch(getUserProfile())
   }, [dispatch])
+
+  const isPremiumUser = Boolean(profile?.is_premium)
 
   const filteredExercises = exercises.filter(exercise => {
     const matchesSearch = exercise.name
       ?.toLowerCase()
       .includes(searchQuery.toLowerCase())
     const matchesCategory =
-      selectedCategory === "All" || exercise.category === selectedCategory
+      selectedCategory === "ALL" ||
+      (exercise.category || "").toUpperCase() === selectedCategory
     return matchesSearch && matchesCategory
   })
 
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
+      <PremiumDialog
+        open={showPremiumDialog}
+        onOpenChange={setShowPremiumDialog}
+      />
 
       <main className="pt-24 pb-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         {/* Header */}
@@ -91,15 +103,15 @@ const Exercises = () => {
             <div className="flex flex-wrap gap-2 animate-fade-in">
               {categories.map(category => (
                 <button
-                  key={category}
-                  onClick={() => setSelectedCategory(category)}
+                  key={category.value}
+                  onClick={() => setSelectedCategory(category.value)}
                   className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
-                    selectedCategory === category
+                    selectedCategory === category.value
                       ? "bg-primary text-primary-foreground"
                       : "bg-secondary hover:bg-muted"
                   }`}
                 >
-                  {category}
+                  {category.label}
                 </button>
               ))}
             </div>
@@ -127,10 +139,23 @@ const Exercises = () => {
                 }`}
                 style={{ animationDelay: `${index * 50}ms` }}
               >
-                {exercise.is_premium && (
-                  <div className="absolute top-4 right-4 flex items-center gap-1 px-2 py-1 rounded-lg bg-primary/20 text-primary text-xs font-medium">
+                {exercise.is_premium && !isPremiumUser && (
+                  <button
+                    type="button"
+                    onClick={event => {
+                      event.stopPropagation()
+                      setShowPremiumDialog(true)
+                    }}
+                    className="absolute top-4 right-4 flex items-center gap-1 px-2 py-1 rounded-lg bg-primary/20 text-primary text-xs font-medium hover:bg-primary/30 transition-colors"
+                  >
                     <Lock className="w-3 h-3" />
                     Premium
+                  </button>
+                )}
+
+                {exercise.is_premium && isPremiumUser && (
+                  <div className="absolute top-4 right-4 flex items-center gap-1 px-2 py-1 rounded-lg bg-success/20 text-success text-xs font-medium">
+                    Premium Unlocked
                   </div>
                 )}
 
@@ -151,16 +176,23 @@ const Exercises = () => {
                   </span>
                   <span
                     className={`px-2 py-1 rounded-lg text-xs font-medium ${difficultyColors[
-                      exercise.difficulty
+                      (exercise.difficulty || "").toUpperCase()
                     ] ?? ""}`}
                   >
                     {exercise.difficulty}
                   </span>
                 </div>
 
-                {exercise.is_premium && (
+                {exercise.is_premium && !isPremiumUser && (
                   <div className="absolute inset-0 bg-background/50 backdrop-blur-[1px] rounded-2xl flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                    <button className="angrit-btn-primary text-sm">
+                    <button
+                      type="button"
+                      onClick={event => {
+                        event.stopPropagation()
+                        setShowPremiumDialog(true)
+                      }}
+                      className="angrit-btn-primary text-sm"
+                    >
                       Unlock Premium
                     </button>
                   </div>

@@ -10,11 +10,14 @@ import {
   ChevronRight,
   Clock,
   Dumbbell,
-  Target
+  Target,
+  Crown
 } from "lucide-react"
 import Navbar from "../components/Navbar";
+import PremiumDialog from "../components/PremiumDialog"
 import { useDispatch, useSelector } from "react-redux"
 import { getDashboardStats } from "../actions/workoutActions"
+import { getUserProfile } from "../actions/userActions"
 
 const ACTIVE_WORKOUT_STORAGE_KEY = "activeWorkoutSession"
 
@@ -23,13 +26,18 @@ const Dashboard = () => {
   const { loading: isLoading, stats } = useSelector(
     state => state.dashboardStats
   )
+  const { profile } = useSelector(state => state.userProfile)
   const { workouts: recentWorkouts } = useSelector(state => state.workoutLog)
   const [activeSession, setActiveSession] = useState(null)
   const [, setClockTick] = useState(0)
+  const [showPremiumDialog, setShowPremiumDialog] = useState(false)
 
   useEffect(() => {
     dispatch(getDashboardStats())
+    dispatch(getUserProfile())
   }, [dispatch])
+
+  const isPremiumUser = Boolean(profile?.is_premium)
 
   useEffect(() => {
     const readActiveSession = () => {
@@ -119,16 +127,33 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
+      <PremiumDialog
+        open={showPremiumDialog}
+        onOpenChange={setShowPremiumDialog}
+      />
 
       <main className="pt-24 pb-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-8 animate-fade-in">
-          <h1 className="font-display text-3xl sm:text-4xl font-bold mb-2">
-            Today's Progress
-          </h1>
-          <p className="text-muted-foreground">
-            Keep pushing. Every rep counts.
-          </p>
+        <div className="mb-8 animate-fade-in flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="font-display text-3xl sm:text-4xl font-bold mb-2">
+              Today's Progress
+            </h1>
+            <p className="text-muted-foreground">
+              Keep pushing. Every rep counts.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowPremiumDialog(true)}
+            className={`inline-flex items-center justify-center gap-2 ${
+              isPremiumUser ? "angrit-btn-secondary" : "angrit-btn-primary"
+            }`}
+            disabled={isPremiumUser}
+          >
+            <Crown className="w-4 h-4" />
+            {isPremiumUser ? "Premium Active" : "Get Premium"}
+          </button>
         </div>
 
         {/* Stats Grid */}
