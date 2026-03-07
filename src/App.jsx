@@ -21,6 +21,7 @@ import WorkoutLog from "./pages/WorkoutLog";
 import Program from "./pages/Program";
 import ChatCoach from "./pages/ChatCoach";
 import NotFound from "./pages/NotFound";
+import ProgressAnalytics from "./pages/ProgressAnalytics";
 
 const queryClient = new QueryClient();
 
@@ -51,6 +52,7 @@ const App = () => {
                 <Route path="/workout-log" element={<WorkoutLog />} />
                 <Route path="/program" element={<Program />} />
                 <Route path="/chat-coach" element={<ChatCoach />} />
+                <Route path="/progress-analytics" element={<ProgressAnalytics />} />
               </Route>
 
               {/* Catch-all */}
