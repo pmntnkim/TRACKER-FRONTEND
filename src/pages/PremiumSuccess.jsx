@@ -7,17 +7,22 @@ const PremiumSuccess = () => {
   const [searchParams] = useSearchParams()
   const [loading, setLoading] = useState(true)
   const [success, setSuccess] = useState(false)
-  const [message, setMessage] = useState("Confirming your PayPal payment...")
+  const [message, setMessage] = useState("Confirming your PayPal subscription...")
 
   useEffect(() => {
     const finalizePayment = async () => {
-      const orderID = (searchParams.get("token") || searchParams.get("orderID") || "").trim()
+      const subscriptionID = (
+        searchParams.get("subscription_id") ||
+        searchParams.get("token") ||
+        searchParams.get("orderID") ||
+        ""
+      ).trim()
       const token = localStorage.getItem("angrit_token")
 
-      if (!orderID) {
+      if (!subscriptionID) {
         setLoading(false)
         setSuccess(false)
-        setMessage("Missing PayPal order ID in callback URL.")
+        setMessage("Missing PayPal subscription ID in callback URL.")
         return
       }
 
@@ -36,17 +41,17 @@ const PremiumSuccess = () => {
           },
         }
         const { data } = await axios.post(
-          "http://127.0.0.1:8000/api/premium/paypal/capture-order/",
-          { orderID },
+          "http://127.0.0.1:8000/api/premium/paypal/activate-subscription/",
+          { subscriptionID },
           config
         )
         setSuccess(true)
-        setMessage(data?.message || "Premium activated successfully.")
+        setMessage(data?.message || "Premium subscription activated successfully.")
       } catch (error) {
         const detail =
           error.response?.data?.detail ||
           error.response?.data?.message ||
-          "Unable to confirm PayPal payment."
+          "Unable to confirm PayPal subscription."
         setSuccess(false)
         setMessage(detail)
       } finally {

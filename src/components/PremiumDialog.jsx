@@ -31,7 +31,7 @@ const PremiumDialog = ({ open, onOpenChange }) => {
       }
 
       const { data } = await axios.post(
-        "http://127.0.0.1:8000/api/premium/paypal/create-order/",
+        "http://127.0.0.1:8000/api/premium/paypal/create-subscription/",
         {},
         config
       )
@@ -61,11 +61,15 @@ const PremiumDialog = ({ open, onOpenChange }) => {
             Go Premium
           </DialogTitle>
           <DialogDescription className="text-sm text-muted-foreground">
-            Unlock the full ANGRIT training experience.
+            Unlock the full ANGRIT training experience with a recurring subscription.
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-3">
+          <div className="rounded-xl border border-success/20 bg-success/10 p-3">
+            <p className="text-sm font-semibold text-success">PHP 167 per month subscription</p>
+            <p className="text-xs text-muted-foreground mt-1">Billed monthly via PayPal. Cancel anytime from PayPal subscription settings.</p>
+          </div>
           <div className="rounded-xl border border-primary/20 bg-primary/5 p-3 flex items-start gap-3">
             <Sparkles className="w-4 h-4 mt-0.5 text-primary" />
             <p className="text-sm">Access all premium exercises and future pro programs.</p>
@@ -93,7 +97,7 @@ const PremiumDialog = ({ open, onOpenChange }) => {
               onClick={handleCheckout}
               disabled={loading}
             >
-              {loading ? "Redirecting to PayPal..." : "Get Premium"}
+              {loading ? "Redirecting to PayPal..." : "Subscribe for PHP 167/month"}
             </button>
             <p className="text-xs text-muted-foreground text-center">
               Secure checkout powered by PayPal Sandbox.
