@@ -163,6 +163,12 @@ const Exercises = () => {
       return
     }
 
+    if (activeDetailId === exerciseId) {
+      setActiveDetailId(null)
+      dispatch({ type: EXERCISE_DETAILS_RESET })
+      return
+    }
+
     try {
       setActiveDetailId(exerciseId)
       await dispatch(getExerciseDetails(exerciseId))
@@ -391,68 +397,6 @@ const Exercises = () => {
           >
             {listError || adminMessage}
           </div>
-        )}
-
-        {canViewPremiumDetails && (selectedExercise || detailLoading || detailError) && (
-          <section className="angrit-card mb-8 animate-fade-in">
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-              <div>
-                <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-2">
-                  Premium exercise detail
-                </p>
-
-                {detailLoading ? (
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <LoaderCircle className="w-4 h-4 animate-spin" />
-                    Loading full exercise information...
-                  </div>
-                ) : detailError ? (
-                  <p className="text-destructive">{detailError}</p>
-                ) : selectedExercise ? (
-                  <>
-                    <h2 className="text-2xl font-bold mb-2">{selectedExercise.exercise_name}</h2>
-                    <p className="text-muted-foreground max-w-3xl">
-                      {selectedExercise.description || "No detailed description has been added yet."}
-                    </p>
-                  </>
-                ) : (
-                  <p className="text-muted-foreground">Choose an exercise card to load the full premium detail view.</p>
-                )}
-              </div>
-
-              {selectedExercise && !detailLoading && (
-                <button
-                  type="button"
-                  onClick={() => handleWatchVideo(selectedExercise.video_url)}
-                  className="angrit-btn-primary flex items-center justify-center gap-2"
-                >
-                  <ExternalLink className="w-4 h-4" />
-                  Watch on YouTube
-                </button>
-              )}
-            </div>
-
-            {selectedExercise && !detailLoading && (
-              <div className="grid gap-4 mt-6 md:grid-cols-2 xl:grid-cols-4">
-                <div className="rounded-2xl border border-border bg-secondary/40 p-4">
-                  <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-2">Category</p>
-                  <p className="font-semibold">{formatEnumLabel(selectedExercise.category)}</p>
-                </div>
-                <div className="rounded-2xl border border-border bg-secondary/40 p-4">
-                  <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-2">Difficulty</p>
-                  <p className="font-semibold">{formatEnumLabel(selectedExercise.difficulty_level)}</p>
-                </div>
-                <div className="rounded-2xl border border-border bg-secondary/40 p-4">
-                  <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-2">Muscle groups</p>
-                  <p className="font-semibold">{selectedExercise.muscle_groups_targeted || "Not specified"}</p>
-                </div>
-                <div className="rounded-2xl border border-border bg-secondary/40 p-4">
-                  <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-2">Equipment</p>
-                  <p className="font-semibold">{selectedExercise.equipment_needed || "Not specified"}</p>
-                </div>
-              </div>
-            )}
-          </section>
         )}
 
         {isAdminUser && (
@@ -701,6 +645,38 @@ const Exercises = () => {
                     </div>
                   )}
                 </div>
+
+                {canViewPremiumDetails && activeDetailId === exercise.id && (
+                  <div className="mt-5 rounded-2xl border border-primary/20 bg-primary/5 p-4">
+                    {detailLoading ? (
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <LoaderCircle className="w-4 h-4 animate-spin" />
+                        Loading full exercise information...
+                      </div>
+                    ) : detailError ? (
+                      <p className="text-sm text-destructive">{detailError}</p>
+                    ) : selectedExercise?.id === exercise.id ? (
+                      <div className="space-y-4">
+                        <p className="text-sm text-muted-foreground">
+                          {selectedExercise.description || "No detailed description has been added yet."}
+                        </p>
+
+                        <div className="grid gap-3 sm:grid-cols-2">
+                          <div className="rounded-xl border border-border bg-secondary/40 p-3">
+                            <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-1">Muscle groups</p>
+                            <p className="text-sm font-semibold">{selectedExercise.muscle_groups_targeted || "Not specified"}</p>
+                          </div>
+                          <div className="rounded-xl border border-border bg-secondary/40 p-3">
+                            <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-1">Equipment</p>
+                            <p className="text-sm font-semibold">{selectedExercise.equipment_needed || "Not specified"}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">Loading selected exercise details...</p>
+                    )}
+                  </div>
+                )}
               </div>
             ))}
           </div>
