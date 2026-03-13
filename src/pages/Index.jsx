@@ -5,13 +5,29 @@ import {
   ChevronRight, 
   Zap, 
   Target, 
-  TrendingUp, 
   Sparkles,
   MessageCircle,
   BarChart3
 } from "lucide-react"
+import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { getDashboardStats, listWorkoutLogs } from "../actions/workoutActions";
 
 const Index = () => {
+  const dispatch = useDispatch()
+  const { stats } = useSelector(state => state.dashboardStats)
+  const { workouts } = useSelector(state => state.workoutLog)
+
+  useEffect(() => {
+    dispatch(getDashboardStats())
+    dispatch(listWorkoutLogs())
+  }, [dispatch])
+
+  const goalSuccess =
+    stats?.weekly_completed != null
+      ? Math.min(Math.round((stats.weekly_completed / 5) * 100), 100)
+      : 0;
+  
   const features = [
     {
       icon: BarChart3,
@@ -106,9 +122,9 @@ const Index = () => {
           {/* Stats */}
           <div className="mt-16 grid grid-cols-3 gap-8 max-w-2xl mx-auto">
             {[
-              { value: "10K+", label: "Active Users" },
-              { value: "500K+", label: "Workouts Logged" },
-              { value: "95%", label: "Goal Success" },
+              { value: stats?.total_workouts != null ? `${stats.total_workouts}` : "0", label: "Active Users" },
+              { value: workouts.length > 0 ? workouts.length.toLocaleString() : "0", label: "Workouts Logged" },
+              { value: `${goalSuccess}%`, label: "Goal Success" },
             ].map((stat, index) => (
               <div key={index} className="animate-slide-up" style={{ animationDelay: `${index * 100}ms` }}>
                 <p className="font-display text-3xl sm:text-4xl font-bold text-primary">
