@@ -7,7 +7,10 @@ import { chatReducer } from "./reducers/chatReducers"
 import { programReducer } from "./reducers/programReducers"
 import {
   exerciseListReducer,
-  exerciseDetailsReducer
+  exerciseDetailsReducer,
+  exerciseCreateReducer,
+  exerciseUpdateReducer,
+  exerciseDeleteReducer
 } from "./reducers/exerciseReducers"
 import {
   workoutLogReducer,
@@ -25,6 +28,9 @@ const rootReducer = combineReducers({
   program: programReducer,
   exerciseList: exerciseListReducer,
   exerciseDetails: exerciseDetailsReducer,
+  exerciseCreate: exerciseCreateReducer,
+  exerciseUpdate: exerciseUpdateReducer,
+  exerciseDelete: exerciseDeleteReducer,
   workoutLog: workoutLogReducer,
   dashboardStats: dashboardStatsReducer,
   progress: progressAnalyticsReducer

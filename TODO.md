@@ -1,6 +1,10 @@
-# TODO for Dashboard and Profile Components
+# Backend Run TODO
 
-- [x] Create FRONTEND/src/pages/Dashboard.jsx: Component to display total workouts and total minutes exercised, fetching data via API (GET /workouts/summary).
-- [x] Create FRONTEND/src/pages/Profile.jsx: Form component for editing age, height, weight, goal, fitness level, with controlled inputs and API save (PUT /user/profile).
-- [x] Edit FRONTEND/src/App.jsx: Import and replace placeholder elements with the new components.
-- [x] Test components for runtime errors and proper state handling.
+- [x] cd into WORKOUT-TRACKER-BACKEND (multiple times as needed)
+- [x] Create and activate Python virtual environment
+- [x] pip install -r requirements.txt
+- [ ] python manage.py migrate
+- [ ] python manage.py seed_data
+- [ ] python manage.py runserver
+- [ ] Test server at http://127.0.0.1:8000/
+

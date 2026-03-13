@@ -143,6 +143,7 @@
 
   .angrit-glow::before {
     content: '';
+    pointer-events: none;
     @apply absolute inset-0 rounded-2xl opacity-0 transition-opacity duration-300;
     background: radial-gradient(circle at center, hsl(var(--primary) / 0.15), transparent 70%);
   }
