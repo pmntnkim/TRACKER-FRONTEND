@@ -178,7 +178,7 @@ const MonthlyCalendar = ({ activeDays }) => {
         {monthName}
       </p>
       <div className="grid grid-cols-7 gap-1 text-center text-xs">
-        {["M", "T", "W", "T", "F", "S", "S"].map((d, i) => (
+        {["M", "T", "W", "Th", "F", "Sa", "S"].map((d, i) => (
           <span key={i} className="text-muted-foreground font-medium py-1">
             {d}
           </span>
