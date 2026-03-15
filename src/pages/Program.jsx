@@ -583,7 +583,7 @@ const Program = () => {
 
         <section className="angrit-card mb-8 animate-slide-up">
           <h2 className="font-display text-2xl font-bold mb-2">
-            YOUR WORKOUT SPLITS
+            Your Workout Splits
           </h2>
           <p className="text-muted-foreground mb-6">
             View your saved splits and continue where you left off.
