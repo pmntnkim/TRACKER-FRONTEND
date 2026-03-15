@@ -164,7 +164,7 @@ const MonthlyCalendar = ({ activeDays }) => {
   const year = now.getFullYear()
   const month = now.getMonth()
   const daysInMonth = new Date(year, month + 1, 0).getDate()
-  const firstDayOffset = (new Date(year, month, 1).getDay() + 6) % 7
+  const firstDayOffset = new Date(year, month, 1).getDay();
   const today = now.getDate()
   const monthName = now.toLocaleString("default", {
     month: "long",
@@ -178,7 +178,7 @@ const MonthlyCalendar = ({ activeDays }) => {
         {monthName}
       </p>
       <div className="grid grid-cols-7 gap-1 text-center text-xs">
-        {["M", "T", "W", "T", "F", "S", "S"].map((d, i) => (
+        {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d, i) => (
           <span key={i} className="text-muted-foreground font-medium py-1">
             {d}
           </span>

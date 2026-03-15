@@ -5,7 +5,6 @@ import {
   ChevronRight, 
   Zap, 
   Target, 
-  TrendingUp, 
   Sparkles,
   MessageCircle,
   BarChart3
@@ -103,20 +102,11 @@ const Index = () => {
             </Link>
           </div>
 
-          {/* Stats */}
-          <div className="mt-16 grid grid-cols-3 gap-8 max-w-2xl mx-auto">
-            {[
-              { value: "10K+", label: "Active Users" },
-              { value: "500K+", label: "Workouts Logged" },
-              { value: "95%", label: "Goal Success" },
-            ].map((stat, index) => (
-              <div key={index} className="animate-slide-up" style={{ animationDelay: `${index * 100}ms` }}>
-                <p className="font-display text-3xl sm:text-4xl font-bold text-primary">
-                  {stat.value}
-                </p>
-                <p className="text-sm text-muted-foreground mt-1">{stat.label}</p>
-              </div>
-            ))}
+          {/* Quote */}
+          <div className="mt-16 max-w-2xl mx-auto animate-slide-up">
+            <blockquote className="text-lg sm:text-xl italic text-muted-foreground border-l-4 border-primary pl-6 text-left">
+              "Success isn't always about greatness. It's about consistency. Consistent hard work leads to success. Greatness will come. The only bad workout is the one that didn't happen—so show up, push through, and let the results speak for themselves."
+            </blockquote>
           </div>
         </div>
       </section>
@@ -155,7 +145,7 @@ const Index = () => {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-border py-8 px-4">
+      <footer className="border-t border-border py-10 px-4">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
