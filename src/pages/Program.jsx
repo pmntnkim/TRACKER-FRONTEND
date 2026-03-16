@@ -325,16 +325,11 @@ const Program = () => {
     setSelectedExerciseByProgram(prev => ({ ...prev, [programId]: value }))
   }
 
-  const getExerciseNameById = exerciseId => {
-    const selectedExercise = exercises.find(
-      exercise => String(exercise.id) === String(exerciseId)
-    )
-    return selectedExercise?.name ?? ""
-  }
+  const getExerciseLabel = exercise =>
+    exercise?.exercise_name ?? exercise?.name ?? ""
 
   const addExerciseToProgram = programId => {
-    const selectedExerciseId = selectedExerciseByProgram[programId] ?? ""
-    const exerciseName = getExerciseNameById(selectedExerciseId).trim()
+    const exerciseName = (selectedExerciseByProgram[programId] ?? "").trim()
     if (!exerciseName) return
 
     setCustomSplit(prev => {
@@ -345,7 +340,7 @@ const Program = () => {
           programItem.id === programId
             ? {
                 ...programItem,
-                exercises: [...programItem.exercises, exerciseName]
+                exercises: [...(programItem.exercises ?? []), exerciseName]
               }
             : programItem
         )
@@ -519,8 +514,11 @@ const Program = () => {
                                   : "Select from exercise library"}
                               </option>
                               {exercises.map(exercise => (
-                                <option key={exercise.id} value={exercise.id}>
-                                  {exercise.name}
+                                <option
+                                  key={exercise.id}
+                                  value={getExerciseLabel(exercise)}
+                                >
+                                  {getExerciseLabel(exercise)}
                                 </option>
                               ))}
                             </select>
