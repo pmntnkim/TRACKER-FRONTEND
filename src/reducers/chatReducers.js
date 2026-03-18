@@ -16,8 +16,7 @@ const initialState = {
       timestamp: new Date().toISOString()
     }
   ],
-  error: null,
-  messageCount: 0
+  error: null
 }
 
 export const chatReducer = (state = initialState, action) => {
@@ -35,8 +34,7 @@ export const chatReducer = (state = initialState, action) => {
             content: action.payload,
             timestamp: new Date().toISOString()
           }
-        ],
-        messageCount: state.messageCount + 1
+        ]
       }
     case CHAT_SEND_MESSAGE_SUCCESS:
       return {

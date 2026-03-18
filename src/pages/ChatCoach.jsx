@@ -1,21 +1,58 @@
 import React from "react"
-import { useState, useRef, useEffect } from "react"
-import { Send, Bot, User, Loader2, Lock, Sparkles } from "lucide-react"
+import { useState, useRef, useEffect, useCallback } from "react"
+import { Send, Bot, User, Loader2, Lock, Sparkles, Crown } from "lucide-react"
 import Navbar from "../components/Navbar"
 import { useDispatch, useSelector } from "react-redux"
-import { sendMessage, resetChat } from "../actions/chatActions"
+import { useNavigate } from "react-router-dom"
+import { logout } from "../actions/authActions"
+import PremiumDialog from "../components/PremiumDialog"
+import useChatCoach from "../hooks/useChatCoach"
+
+const formatMessageTime = timestamp => {
+  if (!timestamp) {
+    return ""
+  }
+
+  const value = new Date(timestamp)
+  if (Number.isNaN(value.getTime())) {
+    return ""
+  }
+
+  return value.toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit"
+  })
+}
 
 const ChatCoach = () => {
   const dispatch = useDispatch()
-  const { loading: isLoading, messages, messageCount } = useSelector(
-    state => state.chat
-  )
+  const navigate = useNavigate()
+  const { userInfo } = useSelector(state => state.authLogin)
+  const token = userInfo?.token || localStorage.getItem("angrit_token")
 
   const [input, setInput] = useState("")
+  const [showPremiumDialog, setShowPremiumDialog] = useState(false)
   const messagesEndRef = useRef(null)
 
-  const maxFreeMessages = 5
-  const isPremiumLocked = messageCount >= maxFreeMessages
+  const handleUnauthorized = useCallback(() => {
+    dispatch(logout())
+    navigate("/login", { replace: true })
+  }, [dispatch, navigate])
+
+  const {
+    loading,
+    sending,
+    error,
+    paywallMessage,
+    messages,
+    isPremium,
+    remainingFreeMessages,
+    isUnlimited,
+    isBlocked,
+    sendMessage,
+  } = useChatCoach({ token, onUnauthorized: handleUnauthorized })
+
+  const isInputDisabled = loading || sending || isBlocked
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -27,9 +64,14 @@ const ChatCoach = () => {
 
   const handleSubmit = async e => {
     e.preventDefault()
-    if (!input.trim() || isPremiumLocked || isLoading) return
-    dispatch(sendMessage(input.trim()))
-    setInput("")
+    if (!input.trim() || isInputDisabled) {
+      return
+    }
+
+    const result = await sendMessage(input.trim())
+    if (result?.ok) {
+      setInput("")
+    }
   }
 
   return (
@@ -46,14 +88,42 @@ const ChatCoach = () => {
             <div>
               <h1 className="font-display text-xl font-bold">AI Coach</h1>
               <p className="text-sm text-muted-foreground">
-                Your personal fitness advisor
+                {loading ? "Syncing your chat history..." : "Your personal fitness advisor"}
               </p>
+            </div>
+            <div className="ml-auto">
+              {isPremium ? (
+                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold border border-primary/30 bg-primary/10 text-primary">
+                  <Crown className="w-3 h-3" />
+                  Premium
+                </span>
+              ) : typeof remainingFreeMessages === "number" ? (
+                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold border border-border bg-secondary text-secondary-foreground">
+                  {remainingFreeMessages} free left
+                </span>
+              ) : (
+                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold border border-border bg-secondary text-secondary-foreground">
+                  Unlimited
+                </span>
+              )}
             </div>
           </div>
         </div>
 
+        {error && !paywallMessage && (
+          <div className="mb-4 p-3 rounded-xl border border-destructive/30 bg-destructive/10 text-sm text-destructive">
+            {error}
+          </div>
+        )}
+
         {/* Messages */}
         <div className="flex-1 overflow-y-auto space-y-4 pb-4">
+          {!loading && messages.length === 0 && (
+            <div className="h-full min-h-[220px] flex items-center justify-center text-center text-sm text-muted-foreground">
+              Start the conversation by asking your coach a fitness question.
+            </div>
+          )}
+
           {messages.map(message => (
             <div
               key={message.id}
@@ -72,7 +142,7 @@ const ChatCoach = () => {
                   message.role === "user"
                     ? "bg-primary text-primary-foreground rounded-tr-md"
                     : "bg-card border border-border rounded-tl-md"
-                }`}
+                } ${message.pending ? "opacity-70" : ""}`}
               >
                 <p className="text-sm leading-relaxed">{message.content}</p>
                 <p
@@ -82,10 +152,7 @@ const ChatCoach = () => {
                       : "text-muted-foreground"
                   }`}
                 >
-                  {new Date(message.timestamp).toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit"
-                  })}
+                    {formatMessageTime(message.timestamp)}
                 </p>
               </div>
 
@@ -97,7 +164,7 @@ const ChatCoach = () => {
             </div>
           ))}
 
-          {isLoading && (
+          {(loading || sending) && (
             <div className="flex gap-3 animate-fade-in">
               <div className="w-8 h-8 rounded-xl bg-primary/10 flex-shrink-0 flex items-center justify-center">
                 <Bot className="w-4 h-4 text-primary" />
@@ -106,7 +173,7 @@ const ChatCoach = () => {
                 <div className="flex items-center gap-2">
                   <Loader2 className="w-4 h-4 animate-spin text-primary" />
                   <span className="text-sm text-muted-foreground">
-                    Thinking...
+                    {loading ? "Loading conversation..." : "Thinking..."}
                   </span>
                 </div>
               </div>
@@ -117,24 +184,24 @@ const ChatCoach = () => {
         </div>
 
         {/* Premium Lock */}
-        {isPremiumLocked && (
+        {(isBlocked || paywallMessage) && (
           <div className="mb-4 p-4 rounded-2xl bg-primary/10 border border-primary/20 animate-fade-in">
             <div className="flex items-start gap-3">
               <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center flex-shrink-0">
                 <Lock className="w-5 h-5 text-primary" />
               </div>
               <div className="flex-1">
-                <h3 className="font-semibold mb-1">Free limit reached</h3>
+                <h3 className="font-semibold mb-1">Chat access limited</h3>
                 <p className="text-sm text-muted-foreground mb-3">
-                  You've used all {maxFreeMessages} free messages. Upgrade to
-                  Premium for unlimited AI coaching.
+                  {paywallMessage ||
+                    "You have reached your free limit. Upgrade to Premium for unlimited AI coaching."}
                 </p>
                 <button
-                  onClick={() => dispatch(resetChat())}
+                  onClick={() => setShowPremiumDialog(true)}
                   className="angrit-btn-primary text-sm flex items-center gap-2"
                 >
                   <Sparkles className="w-4 h-4" />
-                  Reset Chat (Demo)
+                  Go Premium
                 </button>
               </div>
             </div>
@@ -148,27 +215,31 @@ const ChatCoach = () => {
             value={input}
             onChange={e => setInput(e.target.value)}
             placeholder={
-              isPremiumLocked
+              isBlocked
                 ? "Upgrade to continue chatting..."
+                : loading
+                ? "Loading chat history..."
                 : "Ask me anything about fitness..."
             }
-            disabled={isPremiumLocked || isLoading}
+            disabled={isInputDisabled}
             className="angrit-input flex-1 disabled:opacity-50"
           />
           <button
             type="submit"
-            disabled={!input.trim() || isPremiumLocked || isLoading}
+            disabled={!input.trim() || isInputDisabled}
             className="angrit-btn-primary px-4 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <Send className="w-5 h-5" />
+            {sending ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
           </button>
         </form>
 
-        {!isPremiumLocked && (
+        {!isPremium && !isUnlimited && typeof remainingFreeMessages === "number" && (
           <p className="text-center text-xs text-muted-foreground mt-3">
-            {maxFreeMessages - messageCount} free messages remaining
+            {remainingFreeMessages} free messages remaining
           </p>
         )}
+
+        <PremiumDialog open={showPremiumDialog} onOpenChange={setShowPremiumDialog} />
       </main>
     </div>
   )
