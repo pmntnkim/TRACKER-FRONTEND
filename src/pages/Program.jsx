@@ -325,11 +325,14 @@ const Program = () => {
     setSelectedExerciseByProgram(prev => ({ ...prev, [programId]: value }))
   }
 
+  const getExerciseDisplayName = exercise =>
+    (exercise?.name || exercise?.exercise_name || "").trim()
+
   const getExerciseNameById = exerciseId => {
     const selectedExercise = exercises.find(
       exercise => String(exercise.id) === String(exerciseId)
     )
-    return selectedExercise?.name ?? ""
+    return getExerciseDisplayName(selectedExercise)
   }
 
   const addExerciseToProgram = programId => {
@@ -520,7 +523,7 @@ const Program = () => {
                               </option>
                               {exercises.map(exercise => (
                                 <option key={exercise.id} value={exercise.id}>
-                                  {exercise.name}
+                                  {getExerciseDisplayName(exercise)}
                                 </option>
                               ))}
                             </select>

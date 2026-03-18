@@ -166,6 +166,9 @@ const WorkoutLog = () => {
     sets: [createInitialSet(1)]
   })
 
+  const getExerciseDisplayName = exercise =>
+    (exercise?.name || exercise?.exercise_name || "").trim()
+
   const startWorkoutFromProgram = () => {
     if (!selectedSplit || !selectedProgram) return
 
@@ -217,7 +220,9 @@ const WorkoutLog = () => {
 
   const addExerciseToActiveWorkout = () => {
     const pickedName =
-      exercises.find(exercise => String(exercise.id) === String(exercisePicker))?.name ?? ""
+      getExerciseDisplayName(
+        exercises.find(exercise => String(exercise.id) === String(exercisePicker))
+      )
 
     if (!pickedName || !activeWorkout) return
 
@@ -587,7 +592,7 @@ const WorkoutLog = () => {
                     <option value="">Select exercise</option>
                     {exercises.map(exercise => (
                       <option key={exercise.id} value={exercise.id}>
-                        {exercise.name}
+                        {getExerciseDisplayName(exercise)}
                       </option>
                     ))}
                   </select>
