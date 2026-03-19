@@ -24,6 +24,73 @@ const formatMessageTime = timestamp => {
   })
 }
 
+const normalizeAssistantContent = content => {
+  if (!content) {
+    return ""
+  }
+
+  return String(content)
+    .replace(/\r\n?/g, "\n")
+    .replace(/\s+\*\s+\*\*/g, "\n\n- **")
+    .replace(/\s+(\d+\.\s+\*\*)/g, "\n\n$1")
+    .replace(/\s+\*Remember:\*/gi, "\n\n**Remember:**")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim()
+}
+
+const renderInlineFormatting = (text, keyPrefix) => {
+  const segments = String(text).split(/(\*\*[^*]+\*\*)/g)
+
+  return segments.map((segment, index) => {
+    const key = `${keyPrefix}-${index}`
+    const boldMatch = segment.match(/^\*\*([^*]+)\*\*$/)
+
+    if (boldMatch) {
+      return <strong key={key}>{boldMatch[1]}</strong>
+    }
+
+    return <React.Fragment key={key}>{segment}</React.Fragment>
+  })
+}
+
+const renderAssistantMessage = content => {
+  const normalized = normalizeAssistantContent(content)
+  const lines = normalized.split("\n").map(line => line.trim()).filter(Boolean)
+
+  return (
+    <div className="space-y-2 text-sm leading-relaxed text-foreground/95">
+      {lines.map((line, index) => {
+        const bulletMatch = line.match(/^-\s+(.*)$/)
+        const numberedMatch = line.match(/^(\d+)\.\s+(.*)$/)
+
+        if (bulletMatch) {
+          return (
+            <div key={`assistant-line-${index}`} className="flex items-start gap-2">
+              <span className="mt-1 text-primary">•</span>
+              <p>{renderInlineFormatting(bulletMatch[1], `assistant-bullet-${index}`)}</p>
+            </div>
+          )
+        }
+
+        if (numberedMatch) {
+          return (
+            <div key={`assistant-line-${index}`} className="flex items-start gap-2">
+              <span className="mt-0.5 min-w-5 text-primary font-semibold">{numberedMatch[1]}.</span>
+              <p>{renderInlineFormatting(numberedMatch[2], `assistant-numbered-${index}`)}</p>
+            </div>
+          )
+        }
+
+        return (
+          <p key={`assistant-line-${index}`}>
+            {renderInlineFormatting(line, `assistant-paragraph-${index}`)}
+          </p>
+        )
+      })}
+    </div>
+  )
+}
+
 const ChatCoach = () => {
   const dispatch = useDispatch()
   const navigate = useNavigate()
@@ -153,7 +220,11 @@ const ChatCoach = () => {
                     : "bg-card border border-border rounded-tl-md"
                 } ${message.pending ? "opacity-70" : ""}`}
               >
-                <p className="text-sm leading-relaxed">{message.content}</p>
+                {message.role === "assistant" ? (
+                  renderAssistantMessage(message.content)
+                ) : (
+                  <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
+                )}
                 <p
                   className={`text-xs mt-2 ${
                     message.role === "user"
