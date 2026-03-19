@@ -49,6 +49,7 @@ const ChatCoach = () => {
     remainingFreeMessages,
     isUnlimited,
     isBlocked,
+    loadHistory,
     sendMessage,
   } = useChatCoach({ token, onUnauthorized: handleUnauthorized })
 
@@ -111,8 +112,16 @@ const ChatCoach = () => {
         </div>
 
         {error && !paywallMessage && (
-          <div className="mb-4 p-3 rounded-xl border border-destructive/30 bg-destructive/10 text-sm text-destructive">
-            {error}
+          <div className="mb-4 p-3 rounded-xl border border-destructive/30 bg-destructive/10 text-sm text-destructive flex items-center justify-between gap-3">
+            <span>{error}</span>
+            <button
+              type="button"
+              onClick={loadHistory}
+              disabled={loading || sending}
+              className="text-xs font-semibold underline underline-offset-2 disabled:opacity-60"
+            >
+              Retry
+            </button>
           </div>
         )}
 
