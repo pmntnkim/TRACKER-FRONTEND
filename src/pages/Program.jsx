@@ -20,6 +20,8 @@ import { generateProgram, resetProgram } from "../actions/programActions"
 import { listExercises } from "../actions/exerciseActions"
 import axios from "axios"
 
+const BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://127.0.0.1:8000";
+
 const Program = () => {
   const dispatch = useDispatch()
   const {

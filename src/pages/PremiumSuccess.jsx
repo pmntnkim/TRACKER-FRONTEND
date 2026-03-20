@@ -3,6 +3,8 @@ import { Link, useSearchParams } from "react-router-dom"
 import axios from "axios"
 import { CheckCircle, CircleAlert, Loader2, Crown } from "lucide-react"
 
+const BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://127.0.0.1:8000";
+
 const PremiumSuccess = () => {
   const [searchParams] = useSearchParams()
   const [loading, setLoading] = useState(true)
@@ -41,7 +43,7 @@ const PremiumSuccess = () => {
           },
         }
         const { data } = await axios.post(
-          "http://127.0.0.1:8000/api/premium/paypal/activate-subscription/",
+          `${BASE_URL}/api/premium/paypal/activate-subscription/`,
           { subscriptionID },
           config
         )

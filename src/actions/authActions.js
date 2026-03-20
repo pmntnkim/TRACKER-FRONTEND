@@ -69,7 +69,7 @@ export const register = (username, email, password) => async (dispatch) => {
             },
         };
         const { data } = await axios.post(
-            "http://127.0.0.1:8000/api/auth/register/",
+            `${BASE_URL}/api/auth/register/`,
             { username, email, password },
             config
         );
@@ -114,7 +114,7 @@ export const forgotPassword = (email) => async (dispatch) => {
             },
         };
         const { data } = await axios.post(
-            'http://127.0.0.1:8000/api/users/forgot-password/',
+            `${BASE_URL}/api/users/forgot-password/`,
             { email },
             config
         );
@@ -136,7 +136,7 @@ export const resetPassword = (token, password, confirmPassword) => async (dispat
             },
         };
         const { data } = await axios.post(
-            'http://127.0.0.1:8000/api/users/reset-password/',
+            `${BASE_URL}/api/users/reset-password/`,
             { token, password, confirmPassword },
             config
         );

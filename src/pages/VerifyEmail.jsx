@@ -3,6 +3,8 @@ import { Link, useSearchParams } from "react-router-dom"
 import axios from "axios"
 import { Dumbbell, Loader2, CheckCircle, XCircle } from "lucide-react"
 
+const BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://127.0.0.1:8000";
+
 const VerifyEmail = () => {
   const [searchParams] = useSearchParams()
   const token = searchParams.get("token")

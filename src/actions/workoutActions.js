@@ -53,10 +53,10 @@ export const createWorkoutLog = (logData) => async (dispatch, getState) => {
           },
         }
         const { data } = await axios.post(
-          "http://127.0.0.1:8000/api/workouts/logs/",
+          `${BASE_URL}/api/workouts/logs/`,
           logData,
           config
-        )
+        );
         dispatch({ type: WORKOUT_LOG_CREATE_SUCCESS, payload: data })
         return data
     } catch (error) {
@@ -84,7 +84,7 @@ export const deleteWorkoutLog = (id) => async (dispatch, getState) => {
           },
         }
         await axios.delete(
-          `http://127.0.0.1:8000/api/workouts/logs/${id}/`,
+          `${BASE_URL}/api/workouts/logs/${id}/`,
           config
         )
         dispatch({ type: WORKOUT_LOG_DELETE_SUCCESS, payload: id })
@@ -108,7 +108,7 @@ export const getDashboardStats = () => async (dispatch, getState) => {
           },
         }
         const { data } = await axios.get(
-          "http://127.0.0.1:8000/api/workouts/dashboard-stats/",
+          `${BASE_URL}/api/workouts/dashboard-stats/`,
           config
         )
         dispatch({ type: DASHBOARD_STATS_SUCCESS, payload: data })
