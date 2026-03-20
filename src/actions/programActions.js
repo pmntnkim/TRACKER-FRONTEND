@@ -6,6 +6,8 @@ import {
 } from '../constants/programConstants';
 import axios from 'axios';
 
+const BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://127.0.0.1:8000";
+
 export const generateProgram = (requirements) => async (dispatch, getState) => {
     try {
         dispatch({ type: PROGRAM_GENERATE_REQUEST });
@@ -20,7 +22,7 @@ export const generateProgram = (requirements) => async (dispatch, getState) => {
             },
         };
         const { data } = await axios.post(
-            'http://127.0.0.1:8000/api/programs/generate/',
+            `${BASE_URL}/api/programs/generate/`,
             { requirements },
             config
         );

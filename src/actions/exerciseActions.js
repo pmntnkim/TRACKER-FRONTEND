@@ -14,7 +14,8 @@ import {
 } from "../constants/exerciseConstants"
 import axios from "axios"
 
-const EXERCISE_API_URL = "http://127.0.0.1:8000/api/exercises/"
+const BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://127.0.0.1:8000";
+const EXERCISE_API_URL = `${BASE_URL}/api/exercises/`
 
 const getErrorMessage = error => {
     if (typeof error.response?.data?.detail === "string") {

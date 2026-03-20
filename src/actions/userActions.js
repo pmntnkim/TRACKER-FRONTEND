@@ -9,6 +9,8 @@ import {
 import { markProfileCompleted } from "./authActions";
 import axios from "axios";
 
+const BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://127.0.0.1:8000";
+
 const getErrorMessage = (error) => {
     return (
         error.response?.data?.detail ||
@@ -30,7 +32,7 @@ export const getUserProfile = () => async (dispatch, getState) => {
             },
         };
 
-        const { data } = await axios.get("http://127.0.0.1:8000/api/users/profile/", config);
+        const { data } = await axios.get(`${BASE_URL}/api/users/profile/`, config);
         dispatch({ type: USER_PROFILE_SUCCESS, payload: data });
     } catch (error) {
         dispatch({

@@ -21,6 +21,8 @@ import {
 import { listExercises } from "../actions/exerciseActions"
 import axios from "axios"
 
+const BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://127.0.0.1:8000";
+
 const ACTIVE_WORKOUT_STORAGE_KEY = "activeWorkoutSession"
 
 const WorkoutLog = () => {
@@ -106,7 +108,7 @@ const WorkoutLog = () => {
       setSplitError("")
 
       try {
-        const { data } = await axios.get("http://127.0.0.1:8000/api/splits/", {
+        const { data } = await axios.get(`${BASE_URL}/api/splits/`, {
           headers: {
             Authorization: `Bearer ${userInfo.token}`
           }

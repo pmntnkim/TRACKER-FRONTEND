@@ -12,6 +12,8 @@ import {
   DialogTitle,
 } from "../components/ui/dialog"
 
+const BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://127.0.0.1:8000";
+
 const PremiumDialog = ({ open, onOpenChange }) => {
   const { userInfo } = useSelector(state => state.authLogin)
   const [loading, setLoading] = useState(false)
@@ -31,7 +33,7 @@ const PremiumDialog = ({ open, onOpenChange }) => {
       }
 
       const { data } = await axios.post(
-        "http://127.0.0.1:8000/api/premium/paypal/create-subscription/",
+        `${BASE_URL}/api/premium/paypal/create-subscription/`,
         {},
         config
       )

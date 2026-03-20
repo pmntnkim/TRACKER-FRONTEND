@@ -18,6 +18,8 @@ import {
 } from "../constants/authConstants";
 import axios from "axios";
 
+const BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://127.0.0.1:8000";
+
 const getErrorMessage = (error) => {
     return (
         error.response?.data?.detail ||
@@ -35,7 +37,7 @@ export const login = (identifier, password) => async (dispatch) => {
             },
         };
         const { data } = await axios.post(
-            "http://127.0.0.1:8000/api/users/login/",
+            `${BASE_URL}/api/users/login/`,
             { username: identifier, password },
             config
         );

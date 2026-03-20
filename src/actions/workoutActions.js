@@ -14,6 +14,8 @@ import {
 } from "../constants/workoutConstants"
 import axios from "axios"
 
+const BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://127.0.0.1:8000";
+
 export const listWorkoutLogs = () => async (dispatch, getState) => {
   try {
     dispatch({ type: WORKOUT_LOG_LIST_REQUEST })
@@ -26,7 +28,7 @@ export const listWorkoutLogs = () => async (dispatch, getState) => {
       }
     }
     const { data } = await axios.get(
-      "http://127.0.0.1:8000/api/workouts/logs/",
+      `${BASE_URL}/api/workouts/logs/`,
       config
     )
     dispatch({ type: WORKOUT_LOG_LIST_SUCCESS, payload: data })
