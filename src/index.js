@@ -6,6 +6,7 @@ import { BrowserRouter } from 'react-router-dom'
 import store from './store'
 import App from './App.jsx'
 import './index.css'
+import { logout } from './actions/authActions'
 
 const API_BASE_URL = (process.env.REACT_APP_API_BASE_URL || 'http://127.0.0.1:8000').replace(/\/+$/, '')
 
@@ -21,6 +22,17 @@ axios.interceptors.request.use((config) => {
 
   return config
 })
+
+axios.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error?.response?.status === 401 && store.getState().authLogin.userInfo) {
+      store.dispatch(logout())
+    }
+
+    return Promise.reject(error)
+  }
+)
 
 const root = ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

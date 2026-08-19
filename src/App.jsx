@@ -6,6 +6,7 @@ import { TooltipProvider } from "./components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import ProtectedRoute from "./components/ProtectedRoute";
+import BackendStatusBanner from "./components/BackendStatusBanner";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -33,6 +34,7 @@ const App = () => {
         <AuthProvider>
           <Toaster />
           <Sonner />
+          <BackendStatusBanner />
             <Routes>
               {/* Public Routes */}
               <Route path="/" element={<Index />} />
